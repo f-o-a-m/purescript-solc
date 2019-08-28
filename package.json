@@ -1,0 +1,21 @@
+{
+  "private": true,
+  "scripts": {
+    "build": "pulp build",
+    "docs": "pulp test",
+    "postinstall": "bower install"
+  },
+  "devDependencies": {
+    "purescript": "^0.12.0",
+    "pulp": "^12.2.0",
+    "purescript-psa": "^0.6.0",
+    "bn.js": "^4.11.0",
+    "ethjs-provider-http": "^0.1.6",
+    "mkdirp": "^0.5.1",
+    "keccak": "^1.0.2",
+    "secp256k1": "^3.0.1",
+    "bower": "^1.8.2",
+    "rlp": "^2.0.0",
+    "solc": "^0.4.24"
+  }
+}

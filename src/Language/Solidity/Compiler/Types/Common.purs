@@ -1,0 +1,1 @@
+module Language.Solidity.Compiler.Types.Common where
