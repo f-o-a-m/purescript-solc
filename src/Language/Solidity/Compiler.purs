@@ -3,15 +3,15 @@ module Language.Solidity.Compiler
   ) where
 
 import Prelude
+
 import Data.Argonaut as A
 import Data.Argonaut.Parser as AP
 import Data.Either (Either(..))
 import Data.Function.Uncurried (Fn2, runFn2)
 import Effect (Effect)
 import Effect.Class (class MonadEffect, liftEffect)
-import Node.Path (FilePath)
-
 import Language.Solidity.Compiler.Types (CompilerInput, CompilerOutput)
+import Node.Path (FilePath)
 
 foreign import data SolcReadFileCallbackResult :: Type
 foreign import callbackSuccess :: String -> SolcReadFileCallbackResult

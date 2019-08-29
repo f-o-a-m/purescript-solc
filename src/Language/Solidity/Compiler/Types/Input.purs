@@ -6,24 +6,22 @@ module Language.Solidity.Compiler.Types.Input
   , module Language.Solidity.Compiler.Types.Settings
   ) where
 
-import Prelude
-
-import Data.Argonaut (class EncodeJson, (:=), (:=?), (~>), (~>?), encodeJson, jsonEmptyObject)
+import Prelude ((<<<))
+import Data.Argonaut (class EncodeJson, (:=), (:=?), (~>), (~>?), jsonEmptyObject)
 import Data.Argonaut as A
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe)
 import Foreign.Object as FO
 import Network.Ethereum.Types (HexString)
-import Language.Solidity.Compiler.Types.Settings (CompilerSettings(..), Remapping(..))
+import Language.Solidity.Compiler.Types.Settings
+
 --------------------------------------------------
 --- "language" field of input
 data SourceLanguage = Solidity | Yul
 
-instance showSourceLanguage :: Show SourceLanguage where
-  show Solidity = "Solidity"
-  show Yul      = "Yul"
-
 instance encodeJsonSourceLanguage :: EncodeJson SourceLanguage where
-  encodeJson = A.fromString <<< show
+  encodeJson = A.fromString <<< case _ of
+    Solidity -> "Solidity"
+    Yul      -> "Yul"
 
 --------------------------------------------------
 --- "sources" field of input

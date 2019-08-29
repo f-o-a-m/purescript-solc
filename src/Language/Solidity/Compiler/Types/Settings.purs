@@ -1,7 +1,5 @@
 module Language.Solidity.Compiler.Types.Settings 
-  ( FileMapped
-  , ContractMapped
-  , Remapping(..)
+  ( Remapping(..)
   , CompilerSettings(..)
   , OptimizerDetails(..)
   , YulOptimizerDetails(..)
@@ -29,13 +27,7 @@ import Foreign.Object as FO
 import Network.Ethereum.Types (Address)
 import Node.Path (FilePath)
 
---- Some readability sugar for nested object syntaxes
-type FileMapped a     = FO.Object a
-type ContractMapped a = FO.Object a
-
---- Some fields are arrays, and can be omitted entirely if empty
-flattenOptionalArray :: forall a. Array a -> Maybe (Array a)
-flattenOptionalArray rs = if null rs then Nothing else Just rs
+import Language.Solidity.Compiler.Types.Common (ContractMapped, FileMapped, flattenOptionalArray)
 
 --------------------------------------------------
 --- "remappings" field of "settings" field
@@ -171,28 +163,28 @@ instance toSelectionBytecode :: ToSelection EvmBytecodeOutput where
   toSelection BytecodeSourceMap      = "sourceMap"
   toSelection BytecodeLinkReferences = "linkReferences"
 
-data EvmOutputSelection = Assembly
-                        | LegacyAssembly
-                        | Bytecode (Maybe EvmBytecodeOutput)
-                        | DeployedBytecode (Maybe EvmBytecodeOutput)
-                        | MethodIdentifiers
-                        | GasEstimates
+data EvmOutputSelection = AssemblySelection
+                        | LegacyAssemblySelection
+                        | BytecodeSelection (Maybe EvmBytecodeOutput)
+                        | DeployedBytecodeSelection (Maybe EvmBytecodeOutput)
+                        | MethodIdentifiersSelection
+                        | GasEstimatesSelection
 
 instance toSelectionEvmOutput :: ToSelection (Maybe EvmOutputSelection) where
   toSelection Nothing  = "evm"
   toSelection (Just o) = "evm." <> case o of
-    Assembly             -> "assembly"
-    LegacyAssembly       -> "legacyAssembly"
-    Bytecode bc          -> 
+    AssemblySelection             -> "assembly"
+    LegacyAssemblySelection       -> "legacyAssembly"
+    BytecodeSelection bc          -> 
       case bc of 
         Nothing  -> "bytecode"
         Just bc' -> "bytecode." <> toSelection bc'
-    DeployedBytecode dbc -> 
+    DeployedBytecodeSelection dbc -> 
       case dbc of
         Nothing   -> "deployedBytecode"
         Just dbc' -> "deployedBytecode." <> toSelection dbc'
-    MethodIdentifiers    -> "methodIdentifiers"
-    GasEstimates         -> "gasEstimates"
+    MethodIdentifiersSelection    -> "methodIdentifiers"
+    GasEstimatesSelection         -> "gasEstimates"
 
 data EwasmOutputSelection = Wast
                           | Wasm
@@ -209,18 +201,18 @@ data ContractLevelSelection = ABI
                             | Metadata
                             | IR
                             | IROptimized
-                            | EvmOutput (Maybe EvmOutputSelection)
-                            | EwasmOutput (Maybe EwasmOutputSelection)
+                            | EvmOutputSelection (Maybe EvmOutputSelection)
+                            | EwasmOutputSelection (Maybe EwasmOutputSelection)
 
 instance toSelectionContractLevel :: ToSelection ContractLevelSelection where
-  toSelection ABI             = "abi"
-  toSelection DevDoc          = "devdoc"
-  toSelection UserDoc         = "userdoc"
-  toSelection Metadata        = "metadata"
-  toSelection IR              = "ir"
-  toSelection IROptimized     = "irOptimized"
-  toSelection (EvmOutput o)   = toSelection o
-  toSelection (EwasmOutput o) = toSelection o
+  toSelection ABI                      = "abi"
+  toSelection DevDoc                   = "devdoc"
+  toSelection UserDoc                  = "userdoc"
+  toSelection Metadata                 = "metadata"
+  toSelection IR                       = "ir"
+  toSelection IROptimized              = "irOptimized"
+  toSelection (EvmOutputSelection o)   = toSelection o
+  toSelection (EwasmOutputSelection o) = toSelection o
 
 newtype OutputSelection = OutputSelection
   { file     :: Array FileLevelSelection
