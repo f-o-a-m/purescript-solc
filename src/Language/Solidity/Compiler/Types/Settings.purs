@@ -17,6 +17,8 @@ module Language.Solidity.Compiler.Types.Settings
   , OutputSelections(..)
   ) where
 
+import Prelude
+
 import Data.Argonaut (class DecodeJson, class EncodeJson, Json, decodeJson, encodeJson, jsonEmptyArray, jsonEmptyObject, jsonSingletonObject, (.!=), (.:), (.:!), (:=?), (~>?))
 import Data.Argonaut as A
 import Data.Array (nub, null, uncons)
@@ -30,7 +32,6 @@ import Foreign.Object as FO
 import Language.Solidity.Compiler.Types.Common (ContractMapped, FileMapped, flattenOptionalArray)
 import Network.Ethereum.Types (Address)
 import Node.Path (FilePath)
-import Prelude (class Eq, class Ord, bind, flip, identity, map, pure, ($), (<$>), (<<<), (<>), (>>=))
 
 --------------------------------------------------
 --- "remappings" field of "settings" field

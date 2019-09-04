@@ -6,6 +6,7 @@ module Language.Solidity.Compiler.Types.Common
   ) where
 
 import Prelude
+
 import Data.Argonaut (class DecodeJson, class EncodeJson, decodeJson, encodeJson, fromString, jsonParser, stringify)
 import Data.Array as Array
 import Data.Maybe (Maybe(..))

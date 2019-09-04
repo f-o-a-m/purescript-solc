@@ -21,7 +21,7 @@ import Prelude
 import Data.Argonaut (class DecodeJson, Json, decodeJson, (.!=), (.:), (.:?))
 import Data.Argonaut as A
 import Data.Either (Either(..), note)
-import Data.Maybe (Maybe)
+import Data.Maybe (Maybe, maybe)
 import Data.Int as Int
 import Foreign.Object as FO
 import Language.Solidity.Compiler.Types.Common (ContractMapped, FileMapped, Strung)
@@ -86,6 +86,11 @@ newtype SourceLocation = SourceLocation
   }
 derive instance eqSourceLocation :: Eq SourceLocation
 derive instance ordSourceLocation :: Ord SourceLocation
+
+instance showSourceLocation :: Show SourceLocation where
+  show (SourceLocation sl) =
+    let msg = maybe "" (append ": ") sl.message
+    in sl.file <> ":" <> show sl.start <> "-" <> show sl.end <> msg
 
 instance decodeJsonSourceLocation :: DecodeJson SourceLocation where
   decodeJson j = do

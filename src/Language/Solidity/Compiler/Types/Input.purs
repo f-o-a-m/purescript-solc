@@ -7,6 +7,7 @@ module Language.Solidity.Compiler.Types.Input
   ) where
 
 import Prelude
+
 import Data.Argonaut (class DecodeJson, class EncodeJson, (:=), (:=?), (~>), (~>?), decodeJson, jsonEmptyObject)
 import Data.Argonaut as A
 import Data.Either (Either(..))
