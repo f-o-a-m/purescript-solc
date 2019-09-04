@@ -46,6 +46,21 @@ data ErrorType = JSONError
 derive instance eqErrorType  :: Eq ErrorType
 derive instance ordErrorType :: Ord ErrorType
 
+instance showErrorType :: Show ErrorType where
+  show JSONError                 = "JSON Error"
+  show IOError                   = "IO Error"
+  show ParserError               = "Parser Error"
+  show DocstringParsingError     = "Docstring Parsing Error"
+  show SyntaxError               = "Syntax Error"
+  show DeclarationError          = "Declaration Error"
+  show TypeError                 = "Type Error"
+  show UnimplementedFeatureError = "Unimplemented Feature Error"
+  show InternalCompilerError     = "Internal Compiler Error"
+  show Exception                 = "Compiler Exception"
+  show CompilerError             = "Compiler Error"
+  show FatalError                = "Fatal Error"
+  show Warning                   = "Warning"
+
 instance decodeJsonErrorType :: DecodeJson ErrorType where
   decodeJson j = decodeJson j >>= case _ of
     "JSONError" -> pure JSONError
