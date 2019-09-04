@@ -21,7 +21,7 @@ module Language.Solidity.Compiler.Types.Output
 
 import Prelude
 
-import Data.Argonaut (class DecodeJson, class EncodeJson, Json, decodeJson, encodeJson, (.!=), (.:), (.:?))
+import Data.Argonaut (class DecodeJson, class EncodeJson, Json, decodeJson, encodeJson, jsonEmptyObject, (.!=), (.:), (.:?), (~>), (:=))
 import Data.Argonaut as A
 import Data.Either (Either(..), note)
 import Data.Int as Int
@@ -209,6 +209,12 @@ instance decodeJsonLinkReference :: DecodeJson LinkReference where
     start  <- o .: "start"
     length <- o .: "length"
     pure $ LinkReference { start, length }
+
+instance encodeJsonLinkReference :: EncodeJson LinkReference where
+  encodeJson (LinkReference { start, length }) =
+       "start"  := start
+    ~> "length" := length
+    ~> jsonEmptyObject
 
 newtype LinkReferences = LinkReferences (FileMapped (ContractMapped (Array LinkReference)))
 derive instance newtypeLinkReferences :: Newtype LinkReferences _
