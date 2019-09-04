@@ -12,6 +12,7 @@ import Data.Argonaut (class DecodeJson, class EncodeJson, (:=), (:=?), (~>), (~>
 import Data.Argonaut as A
 import Data.Either (Either(..))
 import Data.Maybe (Maybe)
+import Data.Newtype (class Newtype)
 import Foreign.Object as FO
 import Network.Ethereum.Types (HexString)
 import Language.Solidity.Compiler.Types.Settings (CompilerSettings(..), ContractLevelSelection(..), EvmBytecodeOutput(..), EvmOutputSelection(..), EvmVersion(..), EwasmOutputSelection(..), FileLevelSelection(..), Libraries(..), Library(..), MetadataSettings(..), OptimizerDetails(..), OptimizerSettings(..), OutputSelection(..), OutputSelections(..), Remapping(..), YulOptimizerDetails(..))
@@ -57,7 +58,7 @@ instance encodeJsonSource :: EncodeJson Source where
     ~> "keccak256" :=? c.keccak256
 
 newtype Sources = Sources (FO.Object Source)
-
+derive instance newtypeSources :: Newtype Sources _
 derive newtype instance encodeJsonSources :: EncodeJson Sources
 derive newtype instance eqSources :: Eq Sources
 derive newtype instance ordSources :: Ord Sources

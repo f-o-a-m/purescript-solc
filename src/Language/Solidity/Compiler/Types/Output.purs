@@ -26,6 +26,7 @@ import Data.Argonaut as A
 import Data.Either (Either(..), note)
 import Data.Int as Int
 import Data.Maybe (Maybe, maybe)
+import Data.Newtype (class Newtype)
 import Foreign.Object as FO
 import Language.Solidity.Compiler.Types.Common (ContractMapped, FileMapped, Strung)
 import Network.Ethereum.Core.BigNumber (BigNumber, parseBigNumber)
@@ -210,6 +211,7 @@ instance decodeJsonLinkReference :: DecodeJson LinkReference where
     pure $ LinkReference { start, length }
 
 newtype LinkReferences = LinkReferences (FileMapped (ContractMapped (Array LinkReference)))
+derive instance newtypeLinkReferences :: Newtype LinkReferences _
 derive newtype instance eqLinkReferences  :: Eq LinkReferences
 derive newtype instance ordLinkReferences :: Ord LinkReferences
 derive newtype instance decodeJsonLinkReferences :: DecodeJson LinkReferences
@@ -237,6 +239,7 @@ instance decodeJsonBytecodeOutput :: DecodeJson BytecodeOutput where
 --------------------------------------------------
 --- "contracts{}{}.evm.methodIdentifiers" field of output
 newtype MethodIdentifiers = MethodIdentifiers (FO.Object HexString)
+derive instance newtypeMethodIdentifiers :: Newtype MethodIdentifiers _
 derive newtype instance eqMethodIdentifiers  :: Eq MethodIdentifiers
 derive newtype instance ordMethodIdentifiers :: Ord MethodIdentifiers
 derive newtype instance decodeJsonMethodIdentifiers :: DecodeJson MethodIdentifiers
