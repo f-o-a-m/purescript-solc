@@ -4,6 +4,7 @@ module Language.Solidity.Compiler.Types.Output
   , SourceLocation(..)
   , CompilationError(..)
   , SourceLevelOutput(..)
+  , BytecodeObject(..)
   , LinkReference(..)
   , LinkReferences(..)
   , BytecodeOutput(..)
@@ -17,16 +18,16 @@ module Language.Solidity.Compiler.Types.Output
   ) where
 
 import Prelude
-
-import Data.Argonaut (class DecodeJson, Json, decodeJson, (.!=), (.:), (.:?))
+import Control.Alt ((<|>))
+import Data.Argonaut (class DecodeJson, class EncodeJson, Json, decodeJson, encodeJson, (.!=), (.:), (.:?))
 import Data.Argonaut as A
 import Data.Either (Either(..), note)
-import Data.Maybe (Maybe, maybe)
 import Data.Int as Int
+import Data.Maybe (Maybe, maybe)
 import Foreign.Object as FO
 import Language.Solidity.Compiler.Types.Common (ContractMapped, FileMapped, Strung)
-import Network.Ethereum.Types (HexString)
 import Network.Ethereum.Core.BigNumber (BigNumber, parseBigNumber)
+import Network.Ethereum.Types (HexString)
 
 --------------------------------------------------
 --- "errors[].type" field of output
@@ -171,6 +172,19 @@ instance decodeJsonSourceLevelOutput :: DecodeJson SourceLevelOutput where
     pure $ SourceLevelOutput { id, ast, legacyAST }
 
 --------------------------------------------------
+--- "contracts{}{}.evm.{deployedBytecode, bytecode}.object" field of output
+data BytecodeObject = BytecodeHexString HexString | BytecodeUnlinked String
+derive instance eqBytecodeObject  :: Eq BytecodeObject
+derive instance ordBytecodeObject :: Ord BytecodeObject
+
+instance decodeJsonBytecodeObject :: DecodeJson BytecodeObject where
+  decodeJson j = (BytecodeHexString <$> decodeJson j) <|> (BytecodeUnlinked <$> decodeJson j) <|> Left "Bytecode object not a string"
+
+instance encodeJsonBytecodeObject :: EncodeJson BytecodeObject where
+  encodeJson (BytecodeHexString s) = encodeJson s
+  encodeJson (BytecodeUnlinked s)  = encodeJson s
+
+--------------------------------------------------
 --- "contracts{}{}.evm.{deployedBytecode, bytecode}.linkReferences" field of output
 
 data LinkReference = LinkReference
@@ -195,7 +209,7 @@ derive newtype instance decodeJsonLinkReferences :: DecodeJson LinkReferences
 --------------------------------------------------
 --- "contracts{}{}.evm.{deployedBytecode, bytecode}" field of output
 newtype BytecodeOutput = BytecodeOutput
-  { object :: Maybe HexString
+  { object :: Maybe BytecodeObject
   , opcodes :: Maybe String
   , sourceMapping :: Maybe (Strung Json)
   , linkReferences :: Maybe LinkReferences
