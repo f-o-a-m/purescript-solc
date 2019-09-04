@@ -43,6 +43,8 @@ data ErrorType = JSONError
                | CompilerError
                | FatalError
                | Warning
+derive instance eqErrorType  :: Eq ErrorType
+derive instance ordErrorType :: Ord ErrorType
 
 instance decodeJsonErrorType :: DecodeJson ErrorType where
   decodeJson j = decodeJson j >>= case _ of
@@ -65,6 +67,8 @@ instance decodeJsonErrorType :: DecodeJson ErrorType where
 --- "errors[].severity" field of output
 
 data ErrorSeverity = SeverityError | SeverityWarning
+derive instance eqErrorSeverity  :: Eq ErrorSeverity
+derive instance ordErrorSeverity :: Ord ErrorSeverity
 
 instance decodeJsonErrorSeverity :: DecodeJson ErrorSeverity where
   decodeJson o = decodeJson o >>= case _ of
@@ -80,6 +84,8 @@ newtype SourceLocation = SourceLocation
   , end     :: Int
   , message :: Maybe String
   }
+derive instance eqSourceLocation :: Eq SourceLocation
+derive instance ordSourceLocation :: Ord SourceLocation
 
 instance decodeJsonSourceLocation :: DecodeJson SourceLocation where
   decodeJson j = do
@@ -102,6 +108,8 @@ newtype CompilationError = CompilationError
   , sourceLocation :: Maybe SourceLocation
   , secondarySourceLocations :: Array SourceLocation
   }
+derive instance eqCompilationError  :: Eq CompilationError
+derive instance ordCompilationError :: Ord CompilationError
 
 instance decodeJsonCompilationError :: DecodeJson CompilationError where
   decodeJson j = do
@@ -131,6 +139,8 @@ newtype SourceLevelOutput = SourceLevelOutput
   , ast :: Maybe A.Json
   , legacyAST :: Maybe A.Json
   }
+derive instance eqSourceLevelOutput  :: Eq SourceLevelOutput
+derive instance ordSourceLevelOutput :: Ord SourceLevelOutput
 
 instance decodeJsonSourceLevelOutput :: DecodeJson SourceLevelOutput where
   decodeJson j = do
@@ -147,6 +157,8 @@ data LinkReference = LinkReference
   { start  :: Int
   , length :: Int
   }
+derive instance eqLinkReference  :: Eq LinkReference
+derive instance ordLinkReference :: Ord LinkReference
 
 instance decodeJsonLinkReference :: DecodeJson LinkReference where
   decodeJson j = do
@@ -156,6 +168,8 @@ instance decodeJsonLinkReference :: DecodeJson LinkReference where
     pure $ LinkReference { start, length }
 
 newtype LinkReferences = LinkReferences (FileMapped (ContractMapped (Array LinkReference)))
+derive newtype instance eqLinkReferences  :: Eq LinkReferences
+derive newtype instance ordLinkReferences :: Ord LinkReferences
 derive newtype instance decodeJsonLinkReferences :: DecodeJson LinkReferences
 
 --------------------------------------------------
@@ -166,6 +180,8 @@ newtype BytecodeOutput = BytecodeOutput
   , sourceMapping :: Maybe (Strung Json)
   , linkReferences :: Maybe LinkReferences
   }
+derive instance eqBytecodeOutput  :: Eq BytecodeOutput
+derive instance ordBytecodeOutput :: Ord BytecodeOutput
 
 instance decodeJsonBytecodeOutput :: DecodeJson BytecodeOutput where
   decodeJson j = do
@@ -179,13 +195,16 @@ instance decodeJsonBytecodeOutput :: DecodeJson BytecodeOutput where
 --------------------------------------------------
 --- "contracts{}{}.evm.methodIdentifiers" field of output
 newtype MethodIdentifiers = MethodIdentifiers (FO.Object HexString)
-
+derive newtype instance eqMethodIdentifiers  :: Eq MethodIdentifiers
+derive newtype instance ordMethodIdentifiers :: Ord MethodIdentifiers
 derive newtype instance decodeJsonMethodIdentifiers :: DecodeJson MethodIdentifiers
 
 --------------------------------------------------
 --- "contracts{}{}.evm.gasEstimates.*" values of output
 
 data GasEstimate = InfiniteGas | GasCount BigNumber
+derive instance eqGasEstimate  :: Eq GasEstimate
+derive instance ordGasEstimate :: Ord GasEstimate
 
 instance decodeJsonGasEstimate :: DecodeJson GasEstimate where
   decodeJson j = decodeJson j >>= case _ of
@@ -193,6 +212,8 @@ instance decodeJsonGasEstimate :: DecodeJson GasEstimate where
     x -> note "invalid BigNumber" $ GasCount <$> parseBigNumber Int.decimal x
 
 newtype GasEstimates = GasEstimates (FO.Object GasEstimate)
+derive newtype instance eqGasEstimates :: Eq GasEstimates
+derive newtype instance ordGasEstimates :: Ord GasEstimates
 derive newtype instance decodeJsonGasEstimates :: DecodeJson GasEstimates
 
 newtype CreationGasEstimates = CreationGasEstimates
@@ -200,6 +221,8 @@ newtype CreationGasEstimates = CreationGasEstimates
   , executionCost   :: Maybe GasEstimate
   , totalCost       :: Maybe GasEstimate
   }
+derive instance eqCreationGasEstimates  :: Eq CreationGasEstimates
+derive instance ordCreationGasEstimates :: Ord CreationGasEstimates
 
 instance decodeJsonCreationGasEstimates :: DecodeJson CreationGasEstimates where
   decodeJson j = do
@@ -216,6 +239,8 @@ newtype ContractGasEstimates = ContractGasEstimates
   , external :: Maybe (FO.Object GasEstimate)
   , internal :: Maybe (FO.Object GasEstimate)
   }
+derive instance eqContractGasEstimates :: Eq ContractGasEstimates
+derive instance ordContractGasEstimates :: Ord ContractGasEstimates
 
 instance decodeJsonContractGasEstimates :: DecodeJson ContractGasEstimates where
   decodeJson j = do
@@ -236,6 +261,8 @@ newtype EvmOutput = EvmOutput
   , methodIdentifiers :: Maybe MethodIdentifiers
   , gasEstimates :: Maybe GasEstimates
   }
+derive instance eqEvmOutput :: Eq EvmOutput
+derive instance ordEvmOutput :: Ord EvmOutput
 
 instance decodeJsonEvmOutput :: DecodeJson EvmOutput where
   decodeJson j = do
@@ -261,6 +288,8 @@ newtype EwasmOutput = EwasmOutput
   { wast :: Maybe String
   , wasm :: Maybe HexString
   }
+derive instance eqEwasmOutput :: Eq EwasmOutput
+derive instance ordEwasmOutput :: Ord EwasmOutput
 
 instance decodeJsonEwasmOutput :: DecodeJson EwasmOutput where
   decodeJson j = do
@@ -281,6 +310,8 @@ newtype ContractLevelOutput = ContractLevelOutput
   , evm :: Maybe EvmOutput
   , ewasm :: Maybe EwasmOutput
   }
+derive instance eqContractLevelOutput  :: Eq ContractLevelOutput
+derive instance ordContractLevelOutput :: Ord ContractLevelOutput
 
 instance decodeJsonContractLevelOutput :: DecodeJson ContractLevelOutput where
   decodeJson j = do
@@ -301,6 +332,8 @@ newtype CompilerOutput = CompilerOutput
   , sources :: FileMapped SourceLevelOutput
   , contracts :: FileMapped (ContractMapped ContractLevelOutput)
   }
+derive instance eqCompilerOutput  :: Eq CompilerOutput
+derive instance ordCompilerOutput :: Ord CompilerOutput
 
 instance decodeJsonCompilerOutput :: DecodeJson CompilerOutput where
   decodeJson j = do

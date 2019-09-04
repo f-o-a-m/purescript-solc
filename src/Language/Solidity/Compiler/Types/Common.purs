@@ -9,7 +9,7 @@ import Prelude
 import Data.Argonaut (class DecodeJson, class EncodeJson, decodeJson, encodeJson, fromString, jsonParser, stringify)
 import Data.Array as Array
 import Data.Maybe (Maybe(..))
-import Data.Newtype (class Newtype, wrap, unwrap)
+import Data.Newtype (class Newtype)
 import Foreign.Object as FO
 
 --- Some readability sugar for nested object syntaxes
@@ -23,12 +23,17 @@ flattenOptionalArray rs = if Array.null rs then Nothing else Just rs
 --- Some fields are strings which are really JSON
 newtype Strung a = Strung a
 
+derive newtype instance eqStrung        :: Eq a        => Eq        (Strung a)
+derive newtype instance ordStrung       :: Ord a       => Ord       (Strung a)
+derive newtype instance semigroupStrung :: Semigroup a => Semigroup (Strung a)
+derive newtype instance monoidStrung    :: Monoid a    => Monoid    (Strung a)
+
 instance newtypeStrung :: Newtype (Strung a) a where
   wrap = Strung
   unwrap (Strung a) = a
 
 instance decodeJsonStrung :: DecodeJson a => DecodeJson (Strung a) where
-  decodeJson j = decodeJson j >>= jsonParser >>= decodeJson >>= pure <<< wrap
+  decodeJson j = decodeJson j >>= jsonParser >>= decodeJson >>= pure <<< Strung
 
 instance encodeJsonStrung :: EncodeJson a => EncodeJson (Strung a) where
-  encodeJson = fromString <<< stringify <<< encodeJson <<< unwrap
+  encodeJson (Strung a) = fromString <<< stringify $ encodeJson a

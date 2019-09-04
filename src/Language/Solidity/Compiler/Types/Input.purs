@@ -6,17 +6,26 @@ module Language.Solidity.Compiler.Types.Input
   , module Language.Solidity.Compiler.Types.Settings
   ) where
 
-import Prelude ((<<<))
-import Data.Argonaut (class EncodeJson, (:=), (:=?), (~>), (~>?), jsonEmptyObject)
+import Prelude
+import Data.Argonaut (class DecodeJson, class EncodeJson, (:=), (:=?), (~>), (~>?), decodeJson, jsonEmptyObject)
 import Data.Argonaut as A
+import Data.Either (Either(..))
 import Data.Maybe (Maybe)
 import Foreign.Object as FO
 import Network.Ethereum.Types (HexString)
-import Language.Solidity.Compiler.Types.Settings
+import Language.Solidity.Compiler.Types.Settings (CompilerSettings(..), ContractLevelSelection(..), EvmBytecodeOutput(..), EvmOutputSelection(..), EvmVersion(..), EwasmOutputSelection(..), FileLevelSelection(..), Libraries(..), Library(..), MetadataSettings(..), OptimizerDetails(..), OptimizerSettings(..), OutputSelection(..), OutputSelections(..), Remapping(..), YulOptimizerDetails(..))
 
 --------------------------------------------------
 --- "language" field of input
 data SourceLanguage = Solidity | Yul
+derive instance eqSourceLanguage :: Eq SourceLanguage
+derive instance ordSourceLanguage :: Ord SourceLanguage
+
+instance decodeJsonSourceLanguage :: DecodeJson SourceLanguage where
+  decodeJson j = decodeJson j >>= case _ of
+    "Solidity" -> pure Solidity
+    "Yul"      -> pure Yul
+    x          -> Left ("Unknown source language " <> x)
 
 instance encodeJsonSourceLanguage :: EncodeJson SourceLanguage where
   encodeJson = A.fromString <<< case _ of
@@ -35,6 +44,8 @@ data Source =
       { keccak256 :: Maybe HexString -- todo: enforce 256 bit size?
       , content   :: String
       }
+derive instance eqSource  :: Eq Source
+derive instance ordSource :: Ord Source
 
 instance encodeJsonSource :: EncodeJson Source where
   encodeJson (FromURLs u) =
@@ -46,7 +57,9 @@ instance encodeJsonSource :: EncodeJson Source where
 
 newtype Sources = Sources (FO.Object Source)
 
-derive newtype instance encodeJsonSources :: EncodeJson Sources 
+derive newtype instance encodeJsonSources :: EncodeJson Sources
+derive newtype instance eqSources :: Eq Sources
+derive newtype instance ordSources :: Ord Sources
 
 --------------------------------------------------
 --- the input object itself
@@ -56,6 +69,8 @@ newtype CompilerInput = CompilerInput
   , sources  :: Sources
   , settings :: Maybe CompilerSettings
   }
+derive instance eqCompilerInput  :: Eq CompilerInput
+derive instance ordCompilerInput :: Ord CompilerInput
 
 instance encodeJsonCompilerInput :: EncodeJson CompilerInput where
   encodeJson (CompilerInput i) =
