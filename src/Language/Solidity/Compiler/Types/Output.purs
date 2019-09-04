@@ -21,7 +21,6 @@ module Language.Solidity.Compiler.Types.Output
 
 import Prelude
 
-import Control.Alt ((<|>))
 import Data.Argonaut (class DecodeJson, class EncodeJson, Json, decodeJson, encodeJson, (.!=), (.:), (.:?))
 import Data.Argonaut as A
 import Data.Either (Either(..), note)
