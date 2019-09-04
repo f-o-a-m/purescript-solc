@@ -44,4 +44,5 @@ import Language.Solidity.Compiler.Types.Output ( ErrorType(..)
                                                , EwasmOutput(..)
                                                , ContractLevelOutput(..)
                                                , CompilerOutput(..)
+                                               , mkBytecodeObject
                                                ) as Output

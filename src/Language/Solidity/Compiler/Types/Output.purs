@@ -15,9 +15,11 @@ module Language.Solidity.Compiler.Types.Output
   , EwasmOutput(..)
   , ContractLevelOutput(..)
   , CompilerOutput(..)
+  , mkBytecodeObject
   ) where
 
 import Prelude
+
 import Control.Alt ((<|>))
 import Data.Argonaut (class DecodeJson, class EncodeJson, Json, decodeJson, encodeJson, (.!=), (.:), (.:?))
 import Data.Argonaut as A
@@ -27,7 +29,7 @@ import Data.Maybe (Maybe, maybe)
 import Foreign.Object as FO
 import Language.Solidity.Compiler.Types.Common (ContractMapped, FileMapped, Strung)
 import Network.Ethereum.Core.BigNumber (BigNumber, parseBigNumber)
-import Network.Ethereum.Types (HexString)
+import Network.Ethereum.Types (HexString, mkHexString, unHex)
 
 --------------------------------------------------
 --- "errors[].type" field of output
@@ -178,11 +180,14 @@ derive instance eqBytecodeObject  :: Eq BytecodeObject
 derive instance ordBytecodeObject :: Ord BytecodeObject
 
 instance decodeJsonBytecodeObject :: DecodeJson BytecodeObject where
-  decodeJson j = (BytecodeHexString <$> decodeJson j) <|> (BytecodeUnlinked <$> decodeJson j) <|> Left "Bytecode object not a string"
+  decodeJson j = mkBytecodeObject <$> decodeJson j
 
 instance encodeJsonBytecodeObject :: EncodeJson BytecodeObject where
-  encodeJson (BytecodeHexString s) = encodeJson s
+  encodeJson (BytecodeHexString s) = encodeJson (unHex s)
   encodeJson (BytecodeUnlinked s)  = encodeJson s
+
+mkBytecodeObject :: String -> BytecodeObject
+mkBytecodeObject s = maybe (BytecodeUnlinked s) BytecodeHexString (mkHexString s)
 
 --------------------------------------------------
 --- "contracts{}{}.evm.{deployedBytecode, bytecode}.linkReferences" field of output
