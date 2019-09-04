@@ -16,6 +16,7 @@ module Language.Solidity.Compiler.Types.Output
   , ContractLevelOutput(..)
   , CompilerOutput(..)
   , mkBytecodeObject
+  , unBytecodeObject
   ) where
 
 import Prelude
@@ -180,14 +181,17 @@ derive instance eqBytecodeObject  :: Eq BytecodeObject
 derive instance ordBytecodeObject :: Ord BytecodeObject
 
 instance decodeJsonBytecodeObject :: DecodeJson BytecodeObject where
-  decodeJson j = mkBytecodeObject <$> decodeJson j
+  decodeJson = map mkBytecodeObject <<< decodeJson
 
 instance encodeJsonBytecodeObject :: EncodeJson BytecodeObject where
-  encodeJson (BytecodeHexString s) = encodeJson (unHex s)
-  encodeJson (BytecodeUnlinked s)  = encodeJson s
+  encodeJson = encodeJson <<< unBytecodeObject
 
 mkBytecodeObject :: String -> BytecodeObject
 mkBytecodeObject s = maybe (BytecodeUnlinked s) BytecodeHexString (mkHexString s)
+
+unBytecodeObject :: BytecodeObject -> String
+unBytecodeObject (BytecodeHexString s) = unHex s
+unBytecodeObject (BytecodeUnlinked u)  = u
 
 --------------------------------------------------
 --- "contracts{}{}.evm.{deployedBytecode, bytecode}.linkReferences" field of output

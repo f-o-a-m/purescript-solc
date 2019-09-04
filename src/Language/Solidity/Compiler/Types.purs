@@ -45,4 +45,5 @@ import Language.Solidity.Compiler.Types.Output ( ErrorType(..)
                                                , ContractLevelOutput(..)
                                                , CompilerOutput(..)
                                                , mkBytecodeObject
+                                               , unBytecodeObject
                                                ) as Output
