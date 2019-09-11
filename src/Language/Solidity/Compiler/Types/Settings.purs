@@ -19,13 +19,13 @@ module Language.Solidity.Compiler.Types.Settings
 
 import Prelude
 
-import Data.Argonaut (class DecodeJson, class EncodeJson, Json, decodeJson, encodeJson, jsonEmptyArray, jsonEmptyObject, jsonSingletonObject, (.!=), (.:), (.:!), (:=?), (~>?))
+import Data.Argonaut (class DecodeJson, class EncodeJson, Json, decodeJson, encodeJson, fromString, jsonEmptyArray, jsonEmptyObject, jsonSingletonObject, (.!=), (.:), (.:!), (:=?), (~>?))
 import Data.Argonaut as A
 import Data.Array (nub, null, uncons)
 import Data.Either (Either(..), note)
 import Data.Maybe (Maybe(..), maybe)
 import Data.Newtype (class Newtype, un)
-import Data.String (Pattern(..), split)
+import Data.String (Pattern(..), joinWith, split)
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..))
 import Foreign.Object as FO
@@ -236,6 +236,9 @@ instance decodeJsonSelection :: IsSelection a => DecodeJson (JsonSelection a) wh
         sels   = fromSelection splits
     note ("Unknown output selection " <> s) (JsonSelection <$> sels)
 
+instance encodeJsonSelection :: IsSelection a => EncodeJson (JsonSelection a) where
+  encodeJson = fromString <<< joinWith "." <<< toSelection <<< un JsonSelection
+
 mapFromSelectionNullable :: forall a b.  IsSelection a => (Maybe a -> b) -> Array String -> Maybe b
 mapFromSelectionNullable f [] = Just (f Nothing)
 mapFromSelectionNullable f xs = (f <<< Just) <$> fromSelection xs
@@ -368,11 +371,12 @@ instance decodeJsonOutputSelection :: DecodeJson OutputSelection where
     pure $ OutputSelection { file, contract }
 
 instance encodeJsonOutputSelection :: EncodeJson OutputSelection where
-  encodeJson (OutputSelection { file, contract }) = encodeJson $
-    let fileSels             = flattenOptionalArray $ nub $ toSelection <$> file
-        contractSels         = (nub <<< map toSelection) <$> contract
-        filteredContractSels = FO.filter null contractSels
-     in maybe filteredContractSels (flip (FO.insert "") filteredContractSels) fileSels
+  encodeJson (OutputSelection { file, contract }) =
+    let fileLevelJson     = nub $ (encodeJson <<< JsonSelection) <$> file
+        contractLevelJson = (nub <<< map (encodeJson <<< JsonSelection)) <$> contract
+        allSels            = FO.insert "" fileLevelJson contractLevelJson
+        nonEmptySelections = FO.filter (not <<< null) allSels
+     in encodeJson nonEmptySelections
 
 newtype OutputSelections = OutputSelections (FileMapped OutputSelection)
 derive newtype instance encodeJsonOutputSelections :: EncodeJson OutputSelections

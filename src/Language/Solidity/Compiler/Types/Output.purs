@@ -355,7 +355,7 @@ instance decodeJsonEwasmOutput :: DecodeJson EwasmOutput where
 --- "contracts{}{}" field of output
 
 newtype ContractLevelOutput = ContractLevelOutput
-  { abi :: A.Json
+  { abi :: Maybe A.Json
   , metadata :: Maybe (Strung A.Json)
   , userdoc :: Maybe A.Json
   , devdoc :: Maybe A.Json
@@ -369,7 +369,7 @@ derive instance ordContractLevelOutput :: Ord ContractLevelOutput
 instance decodeJsonContractLevelOutput :: DecodeJson ContractLevelOutput where
   decodeJson j = do
     o <- decodeJson j
-    abi <- o .: "abi"
+    abi <- o .:? "abi"
     metadata <- o .:? "metadata"
     userdoc <- o .:? "userdoc"
     devdoc <- o .:? "devdoc"
