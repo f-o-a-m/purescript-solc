@@ -21,6 +21,7 @@ module Language.Solidity.Compiler.Types.Output
 
 import Prelude
 
+import Control.Alt ((<|>))
 import Data.Argonaut (class DecodeJson, class EncodeJson, Json, decodeJson, encodeJson, jsonEmptyObject, (.!=), (.:), (.:?), (~>), (:=))
 import Data.Argonaut as A
 import Data.Either (Either(..), note)
@@ -123,37 +124,38 @@ instance decodeJsonSourceLocation :: DecodeJson SourceLocation where
 --------------------------------------------------
 --- "errors" field of output
 
-newtype CompilationError = CompilationError
-  { type :: ErrorType
-  , component :: String
-  , severity :: ErrorSeverity
-  , message :: String
-  , formattedMessage :: Maybe String
-  , sourceLocation :: Maybe SourceLocation
-  , secondarySourceLocations :: Array SourceLocation
-  }
+data CompilationError = SimpleCompilationError String
+                      | FullCompilationError
+                        { type :: ErrorType
+                        , component :: String
+                        , severity :: ErrorSeverity
+                        , message :: String
+                        , formattedMessage :: Maybe String
+                        , sourceLocation :: Maybe SourceLocation
+                        , secondarySourceLocations :: Array SourceLocation
+                        }
 derive instance eqCompilationError  :: Eq CompilationError
 derive instance ordCompilationError :: Ord CompilationError
 
 instance decodeJsonCompilationError :: DecodeJson CompilationError where
-  decodeJson j = do
-    o <- decodeJson j
-    ty                       <- o .: "type"
-    component                <- o .: "component"
-    severity                 <- o .: "severity"
-    message                  <- o .: "message"
-    formattedMessage         <- o .:? "formattedMessage"
-    sourceLocation           <- o .:? "sourceLocation"
-    secondarySourceLocations <- o .:? "secondarySourceLocations" .!= []
-    pure $ CompilationError 
-      { type: ty
-      , component
-      , severity
-      , message
-      , formattedMessage
-      , sourceLocation
-      , secondarySourceLocations
-      }
+  decodeJson j = (SimpleCompilationError <$> decodeJson j) <|> (decodeAsObject =<< decodeJson j)
+    where decodeAsObject o = do
+            ty                       <- o .: "type"
+            component                <- o .: "component"
+            severity                 <- o .: "severity"
+            message                  <- o .: "message"
+            formattedMessage         <- o .:? "formattedMessage"
+            sourceLocation           <- o .:? "sourceLocation"
+            secondarySourceLocations <- o .:? "secondarySourceLocations" .!= []
+            pure $ FullCompilationError
+              { type: ty
+              , component
+              , severity
+              , message
+              , formattedMessage
+              , sourceLocation
+              , secondarySourceLocations
+              }
 
 --------------------------------------------------
 --- "sources{}" field of output

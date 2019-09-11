@@ -2,6 +2,20 @@
 
 const solc = require('solc');
 
+function stringify(input) {
+  if (typeof input !== 'string') {
+    return JSON.stringify(input);
+  }
+  return input;
+}
+
+function objectify(input) {
+  if (typeof input === 'object') {
+    return input;
+  }
+  return JSON.parse(input);
+}
+
 exports.defaultCompiler = solc;
 
 exports.version = function(solc) {
@@ -32,9 +46,9 @@ exports._loadRemoteVersion = function(version) {
   }
 };
 
-exports._compile = function (input, readCallback) {
+exports._compile = function (solc, input, readCallback) {
   return function() {
-    return JSON.parse(solc.compile(JSON.stringify(input), function(requestedFile) {
+    return objectify(solc.compile(stringify(input), function(requestedFile) {
       return readCallback(requestedFile)();
     }));
   }
