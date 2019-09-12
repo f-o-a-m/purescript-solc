@@ -22,6 +22,16 @@ exports.version = function(solc) {
   return solc.version();
 }
 
+exports.useCompiler = function(source) {
+  const requireFromString = function(str) {
+    const Module = module.constructor;
+    var m = new Module();
+    m._compile(source, "__solc_useCompiler");
+    return m.exports;
+  }
+  return solcMod.setupMethods(requireFromString(source));
+}
+
 exports.callbackSuccess = function (contents) {
   return { "contents": contents }
 };

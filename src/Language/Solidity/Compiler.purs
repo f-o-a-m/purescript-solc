@@ -3,6 +3,7 @@ module Language.Solidity.Compiler
   , defaultCompiler
   , compile
   , loadRemoteVersion
+  , useCompiler
   , version
   ) where
 
@@ -25,6 +26,7 @@ foreign import callbackSuccess :: String -> SolcReadFileCallbackResult
 foreign import callbackFailure :: String -> SolcReadFileCallbackResult
 foreign import defaultCompiler :: SolidityCompiler
 foreign import version :: SolidityCompiler -> String
+foreign import useCompiler :: String -> SolidityCompiler
 foreign import _loadRemoteVersion :: String -> EffectFnAff SolidityCompiler
 foreign import _compile :: Fn3 SolidityCompiler Json (FilePath -> Effect SolcReadFileCallbackResult) (Effect Json)
 
