@@ -392,6 +392,6 @@ instance decodeJsonCompilerOutput :: DecodeJson CompilerOutput where
   decodeJson j = do
     o <- decodeJson j
     errors    <- o .:? "errors" .!= []
-    sources   <- o .: "sources"
-    contracts <- o .: "contracts"
+    sources   <- o .:? "sources" .!= FO.empty
+    contracts <- o .:? "contracts" .!= FO.empty
     pure $ CompilerOutput { errors, sources, contracts }
