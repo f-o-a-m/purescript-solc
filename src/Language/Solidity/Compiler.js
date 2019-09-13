@@ -24,8 +24,11 @@ exports.version = function(solc) {
 
 exports.useCompiler = function(source) {
   const requireFromString = function(str) {
+    const filename = "__solc_useCompiler";
     const Module = module.constructor;
-    var m = new Module();
+    var m = new Module(filename, module);
+    m.filename = filename
+    m.paths = module.paths;
     m._compile(source, "__solc_useCompiler");
     return m.exports;
   }
