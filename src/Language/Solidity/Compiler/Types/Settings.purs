@@ -1,5 +1,6 @@
 module Language.Solidity.Compiler.Types.Settings 
-  ( Remapping(..)
+  ( class IsSelection
+  , Remapping(..)
   , CompilerSettings(..)
   , OptimizerDetails(..)
   , YulOptimizerDetails(..)
@@ -15,6 +16,10 @@ module Language.Solidity.Compiler.Types.Settings
   , ContractLevelSelection(..)
   , OutputSelection(..)
   , OutputSelections(..)
+  , decodeJsonSelection
+  , encodeJsonSelection
+  , fromSelection
+  , toSelection
   ) where
 
 import Prelude
@@ -23,10 +28,9 @@ import Data.Argonaut (class DecodeJson, class EncodeJson, Json, decodeJson, enco
 import Data.Argonaut as A
 import Data.Array (nub, null, uncons)
 import Data.Either (Either(..), note)
-import Data.Maybe (Maybe(..), maybe)
-import Data.Newtype (class Newtype, un)
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String (Pattern(..), joinWith, split)
-import Data.Traversable (sequence)
+import Data.Traversable (for, traverse)
 import Data.Tuple (Tuple(..))
 import Foreign.Object as FO
 import Language.Solidity.Compiler.Types.Common (ContractMapped, FileMapped, flattenOptionalArray)
@@ -224,20 +228,15 @@ class IsSelection a where
   toSelection   :: a -> Array String
   fromSelection :: Array String -> Maybe a
 
-newtype JsonSelection a = JsonSelection a
-derive instance newtypeJsonSelection :: Newtype (JsonSelection a) _
-derive newtype instance eqJsonSelection  :: Eq a  => Eq (JsonSelection a)
-derive newtype instance ordJsonSelection :: Ord a => Ord (JsonSelection a)
+decodeJsonSelection :: forall a. IsSelection a => Json -> Either String a
+decodeJsonSelection j = do
+  s <- decodeJson j
+  let splits = split (Pattern ".") s
+      sels   = fromSelection splits
+  note ("Unknown output selection \"" <> s <> "\"") sels
 
-instance decodeJsonSelection :: IsSelection a => DecodeJson (JsonSelection a) where
-  decodeJson j = do
-    s <- decodeJson j
-    let splits = split (Pattern ".") s
-        sels   = fromSelection splits
-    note ("Unknown output selection " <> s) (JsonSelection <$> sels)
-
-instance encodeJsonSelection :: IsSelection a => EncodeJson (JsonSelection a) where
-  encodeJson = fromString <<< joinWith "." <<< toSelection <<< un JsonSelection
+encodeJsonSelection :: forall a. IsSelection a => a -> Json
+encodeJsonSelection = fromString <<< joinWith "." <<< toSelection
 
 mapFromSelectionNullable :: forall a b.  IsSelection a => (Maybe a -> b) -> Array String -> Maybe b
 mapFromSelectionNullable f [] = Just (f Nothing)
@@ -365,15 +364,15 @@ derive instance ordOutputSelection :: Ord OutputSelection
 instance decodeJsonOutputSelection :: DecodeJson OutputSelection where
   decodeJson j = do
     (o :: FO.Object Json) <- decodeJson j
-    let Tuple fileJ contractJ = maybe (Tuple jsonEmptyArray o) identity $ FO.pop "" o
-    file <- (map $ un JsonSelection) <$> decodeJson fileJ
-    contract <- sequence $ (map (map (un JsonSelection)) <<< decodeJson) <$> contractJ
+    let Tuple fileJ contractJ = fromMaybe (Tuple jsonEmptyArray o) $ FO.pop "" o
+    file <- traverse decodeJsonSelection =<< decodeJson fileJ
+    contract <- for contractJ $ (traverse decodeJsonSelection <=< decodeJson)
     pure $ OutputSelection { file, contract }
 
 instance encodeJsonOutputSelection :: EncodeJson OutputSelection where
   encodeJson (OutputSelection { file, contract }) =
-    let fileLevelJson     = nub $ (encodeJson <<< JsonSelection) <$> file
-        contractLevelJson = (nub <<< map (encodeJson <<< JsonSelection)) <$> contract
+    let fileLevelJson     = nub $ encodeJsonSelection <$> file
+        contractLevelJson = (nub <<< map encodeJsonSelection) <$> contract
         allSels            = FO.insert "" fileLevelJson contractLevelJson
         nonEmptySelections = FO.filter (not <<< null) allSels
      in encodeJson nonEmptySelections

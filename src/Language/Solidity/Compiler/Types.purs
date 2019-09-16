@@ -7,7 +7,8 @@ module Language.Solidity.Compiler.Types
 import Language.Solidity.Compiler.Types.Common ( ContractMapped
                                                , FileMapped
                                                ) as Common
-import Language.Solidity.Compiler.Types.Input  ( Remapping(..)
+import Language.Solidity.Compiler.Types.Input  ( class IsSelection
+                                               , Remapping(..)
                                                , CompilerSettings(..)
                                                , OptimizerDetails(..)
                                                , YulOptimizerDetails(..)
@@ -27,6 +28,10 @@ import Language.Solidity.Compiler.Types.Input  ( Remapping(..)
                                                , Source(..)
                                                , Sources(..)
                                                , CompilerInput(..)
+                                               , decodeJsonSelection
+                                               , encodeJsonSelection
+                                               , fromSelection
+                                               , toSelection
                                                ) as Input
 import Language.Solidity.Compiler.Types.Output ( ErrorType(..)
                                                , ErrorSeverity(..)

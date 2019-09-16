@@ -15,7 +15,7 @@ import Data.Maybe (Maybe)
 import Data.Newtype (class Newtype)
 import Foreign.Object as FO
 import Network.Ethereum.Types (HexString)
-import Language.Solidity.Compiler.Types.Settings (CompilerSettings(..), ContractLevelSelection(..), EvmBytecodeOutput(..), EvmOutputSelection(..), EvmVersion(..), EwasmOutputSelection(..), FileLevelSelection(..), Libraries(..), Library(..), MetadataSettings(..), OptimizerDetails(..), OptimizerSettings(..), OutputSelection(..), OutputSelections(..), Remapping(..), YulOptimizerDetails(..))
+import Language.Solidity.Compiler.Types.Settings (class IsSelection, CompilerSettings(..), ContractLevelSelection(..), EvmBytecodeOutput(..), EvmOutputSelection(..), EvmVersion(..), EwasmOutputSelection(..), FileLevelSelection(..), Libraries(..), Library(..), MetadataSettings(..), OptimizerDetails(..), OptimizerSettings(..), OutputSelection(..), OutputSelections(..), Remapping(..), YulOptimizerDetails(..), decodeJsonSelection, encodeJsonSelection, fromSelection, toSelection)
 
 --------------------------------------------------
 --- "language" field of input
