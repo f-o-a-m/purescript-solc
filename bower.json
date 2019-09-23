@@ -10,10 +10,10 @@
   ],
   "dependencies": {
     "purescript-prelude": "^4.0.0",
-    "purescript-argonaut": "^5.0.0",
+    "purescript-argonaut": "^6.0.0",
     "purescript-effect": "^2.0.1",
     "purescript-node-path": "^3.0.0",
-    "purescript-eth-core": "^4.0.0"
+    "purescript-eth-core": "f-o-a-m/purescript-eth-core#safareli-upgrade"
   },
   "devDependencies": {
     "purescript-debug": "latest",
