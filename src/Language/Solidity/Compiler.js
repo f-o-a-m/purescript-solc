@@ -114,7 +114,7 @@ exports._compile = function (solc, input, readCallback) {
           const isVersionV5_12_plus = version.startsWith("0.5.1") && !version.startsWith("0.5.1+") && !version.startsWith("0.5.1-") && !version.startsWith("0.5.10") && !version.startsWith("0.5.11");
           const isNewCallbackFormat = !version.startsWith("0.4") || isVersionV5_12_plus;
           if (isNewCallbackFormat) {
-            return solc.compile(i, { import: cb });
+            return solc.compile(i, { "import": cb });
           } else {
             return solc.compile(i, cb);
           }
