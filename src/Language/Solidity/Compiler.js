@@ -105,7 +105,19 @@ exports._compile = function (solc, input, readCallback) {
           // if we got here we're probably using version 0.5.x or above AND they actually went through on their promise to remove the deprecated
           // compileStandardWrapper (they said they'd get rid of it after 0.5.3, but 0.5.11 (latest as of this writing) still has it).
           // odds are we can just call solc.compile()!
-          return solc.compile(i, cb);
+
+          // unless we're running 0.5.12+, which made the `callback` argument an object. in which case, we need to
+          // a. instead of passing cb directly to compile, we have to give an object that looks like `{ import: cb }`
+          // b. instead of returning the string output of cb straight to solc, we have to return it an object `{ contents: "str" }`
+          // shoot me in the face
+          // todo: replace all this string checking with a proper version parser/comparison
+          const isVersionV5_12_plus = version.startsWith("0.5.1") && !version.startsWith("0.5.1+") && !version.startsWith("0.5.1-") && !version.startsWith("0.5.10") && !version.startsWith("0.5.11");
+          const isNewCallbackFormat = !version.startsWith("0.4") || isVersionV5_12_plus;
+          if (isNewCallbackFormat) {
+            return solc.compile(i, { "import": cb });
+          } else {
+            return solc.compile(i, cb);
+          }
         }
       }
     };
