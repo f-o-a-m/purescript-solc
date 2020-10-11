@@ -14,6 +14,8 @@ import Prelude
 import Control.Alt ((<|>))
 import Control.Monad.Except (ExceptT(..), catchError, except, runExceptT)
 import Data.Argonaut (class DecodeJson, class EncodeJson, decodeJson, encodeJson, jsonParser)
+import Data.Argonaut.Decode.Error (printJsonDecodeError)
+import Data.Bifunctor (lmap)
 import Data.Either (Either(..), note)
 import Data.Maybe (Maybe(..))
 import Data.String (toLower)
@@ -76,7 +78,7 @@ getReleaseList
 getReleaseList (ReleaseRepo repo) = runExceptT do
   let repoList = repo.base <> "/" <> repo.listFile
   rawJson <- ExceptT $ getURL repoList
-  except $ jsonParser rawJson >>= decodeJson
+  except $ jsonParser rawJson >>= (lmap printJsonDecodeError <<< decodeJson)
 
 lookupLatestRelease
   :: ReleaseList

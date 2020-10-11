@@ -8,6 +8,8 @@ module Language.Solidity.Compiler.Types.Common
 import Prelude
 
 import Data.Argonaut (class DecodeJson, class EncodeJson, decodeJson, encodeJson, fromString, jsonParser, stringify)
+import Data.Argonaut.Decode.Error (JsonDecodeError(..))
+import Data.Bifunctor (lmap)
 import Data.Array as Array
 import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
@@ -34,7 +36,11 @@ instance newtypeStrung :: Newtype (Strung a) a where
   unwrap (Strung a) = a
 
 instance decodeJsonStrung :: DecodeJson a => DecodeJson (Strung a) where
-  decodeJson j = decodeJson j >>= jsonParser >>= decodeJson >>= pure <<< Strung
+  decodeJson j = 
+    decodeJson j >>= 
+      (lmap TypeMismatch <<< jsonParser) >>= 
+      decodeJson >>= 
+      pure <<< Strung
 
 instance encodeJsonStrung :: EncodeJson a => EncodeJson (Strung a) where
   encodeJson (Strung a) = fromString <<< stringify $ encodeJson a

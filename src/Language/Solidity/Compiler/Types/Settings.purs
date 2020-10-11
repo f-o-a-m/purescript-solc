@@ -26,7 +26,9 @@ import Prelude
 
 import Data.Argonaut (class DecodeJson, class EncodeJson, Json, decodeJson, encodeJson, fromString, jsonEmptyArray, jsonEmptyObject, jsonSingletonObject, (.!=), (.:), (.:!), (:=?), (~>?))
 import Data.Argonaut as A
+import Data.Argonaut.Decode.Error (JsonDecodeError(..), printJsonDecodeError)
 import Data.Array (nub, null, uncons)
+import Data.Bifunctor (lmap)
 import Data.Either (Either(..), note)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String (Pattern(..), joinWith, split)
@@ -171,7 +173,7 @@ instance decodeJsonEvmVersion :: DecodeJson EvmVersion where
     "byzantium"        -> pure Byzantium
     "constantinople"   -> pure Constantinople
     "petersburg"       -> pure Petersburg
-    x                  -> Left ("Unknown EVM version " <> x)
+    x                  -> Left $ Named ("Unknown EVM version " <> x) $ UnexpectedValue j
 
 instance encodeJsonEvmVersion :: EncodeJson EvmVersion where
   encodeJson = A.fromString <<< case _ of
@@ -230,10 +232,13 @@ class IsSelection a where
 
 decodeJsonSelection :: forall a. IsSelection a => Json -> Either String a
 decodeJsonSelection j = do
-  s <- decodeJson j
+  s <- lmap printJsonDecodeError $ decodeJson j
   let splits = split (Pattern ".") s
       sels   = fromSelection splits
   note ("Unknown output selection \"" <> s <> "\"") sels
+
+decodeJsonSelection' :: forall a. IsSelection a => Json -> Either JsonDecodeError a
+decodeJsonSelection' j = lmap (\e -> Named e $ UnexpectedValue j) $ decodeJsonSelection j
 
 encodeJsonSelection :: forall a. IsSelection a => a -> Json
 encodeJsonSelection = fromString <<< joinWith "." <<< toSelection
@@ -365,8 +370,8 @@ instance decodeJsonOutputSelection :: DecodeJson OutputSelection where
   decodeJson j = do
     (o :: FO.Object Json) <- decodeJson j
     let Tuple fileJ contractJ = fromMaybe (Tuple jsonEmptyArray o) $ FO.pop "" o
-    file <- traverse decodeJsonSelection =<< decodeJson fileJ
-    contract <- for contractJ $ (traverse decodeJsonSelection <=< decodeJson)
+    file <- traverse decodeJsonSelection' =<< decodeJson fileJ
+    contract <- for contractJ $ (traverse decodeJsonSelection' <=< decodeJson)
     pure $ OutputSelection { file, contract }
 
 instance encodeJsonOutputSelection :: EncodeJson OutputSelection where

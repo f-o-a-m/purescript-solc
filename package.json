@@ -1,7 +1,7 @@
 {
   "private": true,
   "scripts": {
-    "build": "pulp build -- --strict"
+    "build": "sago build"
   },
   "dependencies": {
     "bn.js": "^4.11.0",
@@ -15,6 +15,6 @@
   "devDependencies": {
     "purescript-psa": "^0.7.3",
     "purescript": "^0.13.0",
-    "pulp": "^13.0.0"
+    "spago": "^0.16.0"
   }
 }

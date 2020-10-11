@@ -24,6 +24,7 @@ import Prelude
 import Control.Alt ((<|>))
 import Data.Argonaut (class DecodeJson, class EncodeJson, Json, decodeJson, encodeJson, jsonEmptyObject, (.!=), (.:), (.:?), (~>), (:=))
 import Data.Argonaut as A
+import Data.Argonaut.Decode.Error (JsonDecodeError(..))
 import Data.Either (Either(..), note)
 import Data.Int as Int
 import Data.Maybe (Maybe, maybe)
@@ -81,7 +82,7 @@ instance decodeJsonErrorType :: DecodeJson ErrorType where
     "CompilerError" -> pure CompilerError
     "FatalError" -> pure FatalError
     "Warning" -> pure Warning
-    x -> Left $ "Unexpected ErrorType " <> x
+    x -> Left $ Named ("Unexpected ErrorType " <> x) $ UnexpectedValue j
 
 --------------------------------------------------
 --- "errors[].severity" field of output
@@ -94,7 +95,7 @@ instance decodeJsonErrorSeverity :: DecodeJson ErrorSeverity where
   decodeJson o = decodeJson o >>= case _ of
     "error"   -> pure SeverityError
     "warning" -> pure SeverityWarning
-    x         -> Left $ "Unexpected ErrorSeverity " <> x
+    x         -> Left $ Named ("Unexpected ErrorSeverity " <> x) $ UnexpectedValue o
 
 --------------------------------------------------
 --- "errors[].sourceLocation" and ".secondarySourceLocations" field of output
@@ -262,7 +263,7 @@ derive instance ordGasEstimate :: Ord GasEstimate
 instance decodeJsonGasEstimate :: DecodeJson GasEstimate where
   decodeJson j = decodeJson j >>= case _ of
     "infinite" -> pure InfiniteGas
-    x -> note "invalid BigNumber" $ GasCount <$> parseBigNumber Int.decimal x
+    x -> note (Named "invalid BigNumber" $ UnexpectedValue j) $ GasCount <$> parseBigNumber Int.decimal x
 
 newtype GasEstimates = GasEstimates (FO.Object GasEstimate)
 derive newtype instance eqGasEstimates :: Eq GasEstimates

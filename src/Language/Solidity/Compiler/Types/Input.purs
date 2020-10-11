@@ -10,6 +10,7 @@ import Prelude
 
 import Data.Argonaut (class DecodeJson, class EncodeJson, (:=), (:=?), (~>), (~>?), decodeJson, jsonEmptyObject)
 import Data.Argonaut as A
+import Data.Argonaut.Decode.Error (JsonDecodeError(..))
 import Data.Either (Either(..))
 import Data.Maybe (Maybe)
 import Data.Newtype (class Newtype)
@@ -27,7 +28,7 @@ instance decodeJsonSourceLanguage :: DecodeJson SourceLanguage where
   decodeJson j = decodeJson j >>= case _ of
     "Solidity" -> pure Solidity
     "Yul"      -> pure Yul
-    x          -> Left ("Unknown source language " <> x)
+    x          -> Left $ Named ("Unknown source language " <> x) $ UnexpectedValue j
 
 instance encodeJsonSourceLanguage :: EncodeJson SourceLanguage where
   encodeJson = A.fromString <<< case _ of
