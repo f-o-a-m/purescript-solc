@@ -4,9 +4,8 @@ sudo: required
 node_js: stable
 install:
   - npm install
-  - npm run build
 script:
-  - npm run test
+  - npm run build
 after_success:
 - >-
   test $TRAVIS_TAG &&
