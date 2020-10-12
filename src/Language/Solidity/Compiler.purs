@@ -11,6 +11,8 @@ import Prelude
 
 import Data.Argonaut (Json, encodeJson)
 import Data.Argonaut as A
+import Data.Argonaut.Decode.Error (printJsonDecodeError)
+import Data.Bifunctor (lmap)
 import Data.Either (Either, either)
 import Data.Function.Uncurried (Fn3, runFn3)
 import Effect (Effect)
@@ -37,7 +39,7 @@ compile
   -> CompilerInput
   -> (FilePath -> Effect (Either String String))
   -> m (Either String CompilerOutput)
-compile solc input readFile = liftEffect $
+compile solc input readFile = liftEffect $ map (lmap printJsonDecodeError) $
   A.decodeJson <$> runFn3 _compile solc (encodeJson input) liftedCallback
 
   where inputJson      = A.stringify (A.encodeJson input)
