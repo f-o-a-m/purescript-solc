@@ -1,7 +1,7 @@
 {
   "private": true,
   "scripts": {
-    "build": "sago build"
+    "build": "spago build"
   },
   "dependencies": {
     "bn.js": "^4.11.0",
