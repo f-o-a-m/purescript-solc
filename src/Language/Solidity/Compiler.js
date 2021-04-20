@@ -79,9 +79,23 @@ exports._compile = function (solc, input, readCallback) {
     // solc npm package we're using (let's be honest, is anyone really gonna be using < 0.5?).
     // Nonetheless, before using compile(), we check that it'll behave like 0.5.x+'s., by making sure that the compiler version
     // is not overlapping with an unsupported solc NPM version.
+    //
+    // And now it gets worse, they apparently reuploaded older versions of solc-js blobs that take the new callback form,
+    // in both compile and compileStandardWrapper at some point....
     const compile = function(i, cb) {
+      const isCallbackError = function(e) {
+        return e.toString().toLowerCase().contains("invalid callback");
+      };
       if (solc.compileStandardWrapper) {
-        return solc.compileStandardWrapper(i, cb);
+        try {
+          return solc.compileStandardWrapper(i, cb);
+        } catch(e) {
+          if (isCallbackError(e)) {
+            return solc.compileStandardWrapper(i, { "import": cb });
+          } else {
+            throw e;
+          }
+        }
       } else {
         const fallbackVersion = '<unknown/unsupported>';
         var version = solc.version;
@@ -113,10 +127,20 @@ exports._compile = function (solc, input, readCallback) {
           // todo: replace all this string checking with a proper version parser/comparison
           const isVersionV5_12_plus = version.startsWith("0.5.1") && !version.startsWith("0.5.1+") && !version.startsWith("0.5.1-") && !version.startsWith("0.5.10") && !version.startsWith("0.5.11");
           const isNewCallbackFormat = !version.startsWith("0.4") || isVersionV5_12_plus;
+
           if (isNewCallbackFormat) {
+            try {
             return solc.compile(i, { "import": cb });
           } else {
-            return solc.compile(i, cb);
+            try {
+              return solc.compile(i, cb);
+            } catch (e) {
+              if (isCallbackError(e)) {
+                return solc.compile(i, { "import": cb });
+              } else {
+                throw e;
+              }
+            }
           }
         }
       }
