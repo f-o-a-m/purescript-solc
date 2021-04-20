@@ -130,7 +130,14 @@ exports._compile = function (solc, input, readCallback) {
 
           if (isNewCallbackFormat) {
             try {
-            return solc.compile(i, { "import": cb });
+              return solc.compile(i, { "import": cb });
+            } catch (e) {
+              if (isCallbackError(e)) {
+                return solc.compile(i, cb);
+              } else {
+                throw e;
+              }
+            }
           } else {
             try {
               return solc.compile(i, cb);
