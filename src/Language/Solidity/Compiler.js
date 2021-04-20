@@ -84,7 +84,7 @@ exports._compile = function (solc, input, readCallback) {
     // in both compile and compileStandardWrapper at some point....
     const compile = function(i, cb) {
       const isCallbackError = function(e) {
-        return e.toString().toLowerCase().contains("invalid callback");
+        return e.toString().toLowerCase().includes("invalid callback");
       };
       if (solc.compileStandardWrapper) {
         try {
