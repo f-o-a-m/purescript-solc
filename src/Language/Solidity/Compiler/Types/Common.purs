@@ -31,9 +31,7 @@ derive newtype instance ordStrung       :: Ord a       => Ord       (Strung a)
 derive newtype instance semigroupStrung :: Semigroup a => Semigroup (Strung a)
 derive newtype instance monoidStrung    :: Monoid a    => Monoid    (Strung a)
 
-instance newtypeStrung :: Newtype (Strung a) a where
-  wrap = Strung
-  unwrap (Strung a) = a
+derive instance newtypeStrung :: Newtype (Strung a) _
 
 instance decodeJsonStrung :: DecodeJson a => DecodeJson (Strung a) where
   decodeJson j = 
