@@ -6,12 +6,25 @@ You can edit this file as you like.
 , dependencies =
   [ "aff"
   , "argonaut"
-  , "console"
+  , "argonaut-codecs"
+  , "arrays"
+  , "bifunctors"
+  , "control"
   , "effect"
+  , "either"
+  , "eth-core"
+  , "foldable-traversable"
+  , "foreign-object"
+  , "functions"
+  , "integers"
+  , "maybe"
+  , "newtype"
   , "node-path"
   , "prelude"
   , "psci-support"
-  , "web3"
+  , "strings"
+  , "transformers"
+  , "tuples"
   ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs" ]
