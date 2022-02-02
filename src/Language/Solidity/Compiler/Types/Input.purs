@@ -1,4 +1,4 @@
-module Language.Solidity.Compiler.Types.Input 
+module Language.Solidity.Compiler.Types.Input
   ( SourceLanguage(..)
   , Source(..)
   , Sources(..)
@@ -21,44 +21,47 @@ import Language.Solidity.Compiler.Types.Settings (class IsSelection, CompilerSet
 --------------------------------------------------
 --- "language" field of input
 data SourceLanguage = Solidity | Yul
+
 derive instance eqSourceLanguage :: Eq SourceLanguage
 derive instance ordSourceLanguage :: Ord SourceLanguage
 
 instance decodeJsonSourceLanguage :: DecodeJson SourceLanguage where
   decodeJson j = decodeJson j >>= case _ of
     "Solidity" -> pure Solidity
-    "Yul"      -> pure Yul
-    x          -> Left $ Named ("Unknown source language " <> x) $ UnexpectedValue j
+    "Yul" -> pure Yul
+    x -> Left $ Named ("Unknown source language " <> x) $ UnexpectedValue j
 
 instance encodeJsonSourceLanguage :: EncodeJson SourceLanguage where
   encodeJson = A.fromString <<< case _ of
     Solidity -> "Solidity"
-    Yul      -> "Yul"
+    Yul -> "Yul"
 
 --------------------------------------------------
 --- "sources" field of input
 
-data Source = 
-    FromURLs 
+data Source
+  = FromURLs
       { keccak256 :: Maybe HexString -- todo: enforce 256 bit size?
-      , urls      :: Array String
+      , urls :: Array String
       }
   | FromContent
       { keccak256 :: Maybe HexString -- todo: enforce 256 bit size?
-      , content   :: String
+      , content :: String
       }
-derive instance eqSource  :: Eq Source
+
+derive instance eqSource :: Eq Source
 derive instance ordSource :: Ord Source
 
 instance encodeJsonSource :: EncodeJson Source where
   encodeJson (FromURLs u) =
-       "urls"      :=  u.urls
-    ~> "keccak256" :=? u.keccak256
+    "urls" := u.urls
+      ~> "keccak256" :=? u.keccak256
   encodeJson (FromContent c) =
-       "content"   :=  c.content
-    ~> "keccak256" :=? c.keccak256
+    "content" := c.content
+      ~> "keccak256" :=? c.keccak256
 
 newtype Sources = Sources (FO.Object Source)
+
 derive instance newtypeSources :: Newtype Sources _
 derive newtype instance encodeJsonSources :: EncodeJson Sources
 derive newtype instance eqSources :: Eq Sources
@@ -69,15 +72,16 @@ derive newtype instance ordSources :: Ord Sources
 
 newtype CompilerInput = CompilerInput
   { language :: SourceLanguage
-  , sources  :: Sources
+  , sources :: Sources
   , settings :: Maybe CompilerSettings
   }
-derive instance eqCompilerInput  :: Eq CompilerInput
+
+derive instance eqCompilerInput :: Eq CompilerInput
 derive instance ordCompilerInput :: Ord CompilerInput
 
 instance encodeJsonCompilerInput :: EncodeJson CompilerInput where
   encodeJson (CompilerInput i) =
-       "language" :=  i.language
-    ~> "sources"  :=  i.sources
-    ~> "settings" :=? i.settings
-    ~>? jsonEmptyObject
+    "language" := i.language
+      ~> "sources" := i.sources
+      ~> "settings" :=? i.settings
+      ~>? jsonEmptyObject
