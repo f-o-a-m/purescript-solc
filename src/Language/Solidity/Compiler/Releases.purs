@@ -1,4 +1,4 @@
-module Language.Solidity.Compiler.Releases 
+module Language.Solidity.Compiler.Releases
   ( Build(..)
   , ReleaseList(..)
   , BuildR
@@ -23,15 +23,15 @@ import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Aff.Compat (EffectFnAff, fromEffectFnAff)
 import Foreign.Object as FO
 
-type BuildR a = Record
-  ( path        :: String
-  , version     :: String 
+type BuildR a =
+  { path        :: String
+  , version     :: String
   , build       :: String
-  , longVersion :: String 
+  , longVersion :: String
   , keccak256   :: String
   , urls        :: Array String
   | a
-  )
+  }
 
 data Build = Stable (BuildR ())
            | Prerelease (BuildR (prerelease :: String))
@@ -43,16 +43,16 @@ instance encodeJsonBuild :: EncodeJson Build where
   encodeJson (Stable s)     = encodeJson s
   encodeJson (Prerelease s) = encodeJson s
 
-newtype ReleaseList = 
+newtype ReleaseList =
   ReleaseList { builds        :: Array Build
-              , releases      :: FO.Object String 
-              , latestRelease :: String 
+              , releases      :: FO.Object String
+              , latestRelease :: String
               }
 derive newtype instance decodeJsonReleaseList :: DecodeJson ReleaseList
 derive newtype instance encodeJsonReleaseList :: EncodeJson ReleaseList
 
-newtype ReleaseRepo = 
-  ReleaseRepo { base :: String 
+newtype ReleaseRepo =
+  ReleaseRepo { base :: String
               , listFile :: String
               }
 
@@ -83,8 +83,8 @@ getReleaseList (ReleaseRepo repo) = runExceptT do
 lookupLatestRelease
   :: ReleaseList
   -> Either String String
-lookupLatestRelease (ReleaseList list) = 
-  note "repo's latest release was not in the repo's releases list" $ 
+lookupLatestRelease (ReleaseList list) =
+  note "repo's latest release was not in the repo's releases list" $
     FO.lookup list.latestRelease list.releases
 
 getReleaseSource
@@ -103,4 +103,4 @@ getReleaseSource rr@(ReleaseRepo repo) release = runExceptT do
     _ -> case FO.lookup release list.releases of
            Nothing -> fetch release
            Just releaseFilename -> fetch releaseFilename
-    
+

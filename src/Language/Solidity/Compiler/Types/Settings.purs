@@ -1,4 +1,4 @@
-module Language.Solidity.Compiler.Types.Settings 
+module Language.Solidity.Compiler.Types.Settings
   ( class IsSelection
   , Remapping(..)
   , CompilerSettings(..)
@@ -43,7 +43,7 @@ import Node.Path (FilePath)
 --- "remappings" field of "settings" field
 --- NB: this is a single remapping
 
-data Remapping = GlobalRemapping { to :: FilePath}
+data Remapping = GlobalRemapping { to :: FilePath }
                | Remapping { from :: FilePath, to :: FilePath }
 
 derive instance eqRemapping  :: Eq Remapping
@@ -201,7 +201,7 @@ instance decodeJsonMetadataSettings :: DecodeJson MetadataSettings where
     pure $ MetadataSettings { useLiteralContent }
 
 instance encodeJsonMetadataSettings :: EncodeJson MetadataSettings where
-  encodeJson (MetadataSettings ms) = 
+  encodeJson (MetadataSettings ms) =
     jsonSingletonObject "useLiteralContent" $ A.fromBoolean ms.useLiteralContent
 
 --------------------------------------------------

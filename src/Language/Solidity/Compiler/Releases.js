@@ -1,8 +1,10 @@
 "use strict";
 
+// TODO: replace with purescript-affjax
+
 const http = require('http');
 const https = require('https');
-const MemoryStream = require('memorystream');
+const MemoryStream = require('memorystream'); // TODO: should be in deps?
 
 exports._getURL = function(url) {
   const httpImpl = url.startsWith("https:") ? https : http;
