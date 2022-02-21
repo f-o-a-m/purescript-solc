@@ -71,7 +71,7 @@ getURL u = liftAff $ (map Right <<< fromEffectFnAff $ _getURL u) `catchError` (p
 
 defaultReleaseRepo :: ReleaseRepo
 defaultReleaseRepo = ReleaseRepo
-  { base: "https://ethereum.github.io/solc-bin/bin"
+  { base: "https://binaries.soliditylang.org/bin"
   , listFile: "list.json"
   }
 
