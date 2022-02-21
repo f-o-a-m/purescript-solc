@@ -19,8 +19,8 @@ let additions =
           , "ring-modules"
           , "simple-json"
           ]
-        , repo = "https://github.com/f-o-a-m/purescript-eth-core.git"
-        , version = "v7.0.0"
+        , repo = "https://github.com/srghma/purescript-eth-core.git"
+        , version = "purs-14"
         }
       }
 
