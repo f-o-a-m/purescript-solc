@@ -44,8 +44,8 @@ import Node.Path (FilePath)
 --- NB: this is a single remapping
 
 data Remapping
-  = GlobalRemapping { to :: FilePath }
-  | Remapping { from :: FilePath, to :: FilePath }
+  = GlobalRemapping { to :: FilePath } -- for local import, e.g. `import "./myLib.sol";`
+  | Remapping { from :: FilePath, to :: FilePath } -- for import from libraries, e.g. `import "@openzeppelin/contracts/file.sol";`
 
 derive instance eqRemapping :: Eq Remapping
 derive instance ordRemapping :: Ord Remapping

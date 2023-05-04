@@ -102,7 +102,7 @@ getReleaseSource rr@(ReleaseRepo repo) release = runExceptT do
   let fetch u = ExceptT <<< getURL $ repo.base <> "/" <> u
   rl@(ReleaseList list) <- ExceptT $ getReleaseList rr
   case toLower release of
-    "latest" -> do
+    "latest" -> do -- TODO: make it an object (Latest | Named String)
       releaseFileName <- except (lookupLatestRelease rl)
       fetch releaseFileName
     _ -> case FO.lookup release list.releases of

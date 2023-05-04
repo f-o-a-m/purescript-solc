@@ -22,13 +22,17 @@ exports.version = function(solc) {
   return solc.version();
 }
 
+// other ways to import javascript code from string:
+// - https://nodejs.org/api/vm.html#vm-executing-javascript
 exports.useCompiler = function(source) {
   const requireFromString = function(str) {
-    const filename = "__solc_useCompiler";
-    const Module = module.constructor;
+    const filename = "__solc_useCompiler"; // Note: no need to make it unique
+    const Module = module.constructor; // same as `const Module = require('module').Module`
     var m = new Module(filename, module);
     m.filename = filename
     m.paths = module.paths;
+    // or we could use require('vm').runInNewContext
+    // https://github.com/exuanbo/module-from-string/blob/abe8506e6e06bbb001d1d825d641f5e8f6f3d764/src/require.ts#L25
     m._compile(source, "__solc_useCompiler");
     return m.exports;
   }
@@ -60,7 +64,6 @@ exports._loadRemoteVersion = function(version) {
 };
 
 exports._compile = function (solc, input, readCallback) {
-  return function() {
     // support different versions of solc-js
     // to understand what's going on here, keep this in mind:
     //
@@ -155,5 +158,4 @@ exports._compile = function (solc, input, readCallback) {
     return objectify(compile(stringify(input), function(requestedFile) {
       return readCallback(requestedFile)();
     }));
-  }
 };

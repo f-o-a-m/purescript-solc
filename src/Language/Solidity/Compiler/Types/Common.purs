@@ -16,8 +16,26 @@ import Data.Newtype (class Newtype)
 import Foreign.Object as FO
 
 --- Some readability sugar for nested object syntaxes
-type FileMapped a = FO.Object a
-type ContractMapped a = FO.Object a
+-- For example, given
+-- ```js
+-- var input = {
+--   'test.sol': {
+--     content: 'contract C { function f() public { } }'
+--   }
+-- }
+-- var output = JSON.parse(solc.compile(JSON.stringify(input)));
+-- ```
+--
+-- `output` will be
+-- ```json
+-- {
+--   contracts: { 'test.sol': { C: { ... } } },
+--   errors: [ .. ],
+--   sources: { 'test.sol': { id: 0 } }
+-- }
+-- ```
+type FileMapped a = FO.Object a -- e.g. { 'test.sol': ... }
+type ContractMapped a = FO.Object a -- e.g. { C: ... }
 
 --- Some fields are arrays, and can be omitted entirely if empty
 flattenOptionalArray :: forall a. Array a -> Maybe (Array a)
