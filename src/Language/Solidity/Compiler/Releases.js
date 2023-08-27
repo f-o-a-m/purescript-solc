@@ -1,10 +1,10 @@
 "use strict";
 
-const http = require('http');
-const https = require('https');
-const MemoryStream = require('memorystream');
+import http from "http";
+import https from "https";
+import MemoryStream from "memorystream";
 
-exports._getURL = function(url) {
+export const _getURL = function(url) {
   const httpImpl = url.startsWith("https:") ? https : http;
   return function(onError, onSuccess) {
     var cancel = httpImpl.get(url, function (res) {

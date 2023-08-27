@@ -21,7 +21,6 @@ You can edit this file as you like.
   , "newtype"
   , "node-path"
   , "prelude"
-  , "psci-support"
   , "strings"
   , "transformers"
   , "tuples"

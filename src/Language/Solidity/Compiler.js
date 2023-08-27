@@ -1,6 +1,6 @@
 "use strict";
 
-const solcMod = require('solc');
+import solcMod from "solc";
 
 function stringify(input) {
   if (typeof input !== 'string') {
@@ -16,13 +16,13 @@ function objectify(input) {
   return JSON.parse(input);
 }
 
-exports.defaultCompiler = solcMod;
+export const defaultCompiler = solcMod;
 
-exports.version = function(solc) {
+export const version = function(solc) {
   return solc.version();
 }
 
-exports.useCompiler = function(source) {
+export const useCompiler = function(source) {
   const requireFromString = function(str) {
     const filename = "__solc_useCompiler";
     const Module = module.constructor;
@@ -35,15 +35,15 @@ exports.useCompiler = function(source) {
   return solcMod.setupMethods(requireFromString(source));
 }
 
-exports.callbackSuccess = function (contents) {
+export const callbackSuccess = function (contents) {
   return { "contents": contents }
 };
 
-exports.callbackFailure = function (error) {
+export const callbackFailure = function (error) {
   return { "error": error }
 };
 
-exports._loadRemoteVersion = function(version) {
+export const _loadRemoteVersion = function(version) {
   return function (onError, onSuccess) {
     var cancel = solcMod.loadRemoteVersion(version, function(err, solcSnapshot) {
       if (err) {
@@ -59,7 +59,7 @@ exports._loadRemoteVersion = function(version) {
   }
 };
 
-exports._compile = function (solc, input, readCallback) {
+export const _compile = function (solc, input, readCallback) {
   return function() {
     // support different versions of solc-js
     // to understand what's going on here, keep this in mind:
