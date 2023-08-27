@@ -1,7 +1,9 @@
 {
   "private": true,
   "scripts": {
-    "build": "spago build"
+    "build": "spago build",
+    "tidy": "purs-tidy format-in-place \"src/**/*.purs\" \"test/**/*.purs\"",
+    "tidy-check": "purs-tidy check \"src/**/*.purs\" \"test/**/*.purs\""
   },
   "dependencies": {
     "bn.js": "^4.11.0",

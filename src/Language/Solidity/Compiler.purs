@@ -42,7 +42,8 @@ compile
 compile solc input readFile = liftEffect $ map (lmap printJsonDecodeError) $
   A.decodeJson <$> runFn3 _compile solc (encodeJson input) liftedCallback
 
-  where liftedCallback = map (either callbackFailure callbackSuccess) <<< readFile
+  where
+  liftedCallback = map (either callbackFailure callbackSuccess) <<< readFile
 
 loadRemoteVersion
   :: forall m
