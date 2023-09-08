@@ -22,17 +22,21 @@ export const version = function(solc) {
   return solc.version();
 }
 
-// Because PureScript 0.15+ converted modules to use ESM, we can't just
-// require() in a CJS module -- even import()ing from a data URI will make
-// node's loader assume we're trying to load an ES module. This is unfortunate
-// since solc is shipped as an ES. To get around this, we create a loader hook
+// Because PureScript 0.15+ forces all its modules to be ES modules, we can't just
+// use require() like in a CJS module. Nor do we have the CommonJS `Module` API, where we can
+// synthesize CJS modules at runtime. This is how useCompiler previously worked.
+// import()ing from a data URI will make Node's loader assume we're trying to load an ES module, and there's
+// no way to actually tell it to treat it as a CJS module -- `await import(..., { assert: { type: 'commonjs' }})`
+// is actually an unsupported assertion (only `import assert { type: 'json' }` is supported by node).
+//
+// All of this is really unfortunate since solc is shipped as CommonJS. To get around this, we create a loader hook
 // that forces Node to treat certain URLs as CommonJS.
 //
 // This unfortunately requires Node v20.6+
 //
 // Because we are a PureScript package and can't assume anything about where any relative
 // "pure" JS files will be, but we do know our own module's URL, we keep this function here
-// and in _useCompiler, we register this file as a node loader.
+// and in _useCompiler, we register this file (output/Language.Solidity.Compiler/foreign.js) as a Node loader.
 const __DATA_JS_BASE64 = "data:text/javascript;base64,";
 const __SOLC_CJS_MARKER = "/solc_cjs";
 export function load(spec, context, next) {
@@ -52,9 +56,11 @@ export const _useCompiler = function(source) {
   return function (onError, onSuccess) {
     const mkMod = async () => {
       try {
-        const url = __DATA_JS_BASE64 + btoa(source) + __SOLC_CJS_MARKER;
+        // todo: this is obv. unusable in a browser. `purescript-solc` only really exists to
+        // to support Chanterelle, so this is fine for now...
         const NodeModule = await import("node:module");
         NodeModule.register(import.meta.url);
+        const url = __DATA_JS_BASE64 + btoa(source) + __SOLC_CJS_MARKER;
         const mod = await import(url);
         return mod.default;
       } catch(e) {
