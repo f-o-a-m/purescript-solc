@@ -1,4 +1,4 @@
-module Language.Solidity.Compiler.Releases 
+module Language.Solidity.Compiler.Releases
   ( Build(..)
   , ReleaseList(..)
   , BuildR
@@ -17,46 +17,60 @@ import Data.Argonaut (class DecodeJson, class EncodeJson, decodeJson, encodeJson
 import Data.Argonaut.Decode.Error (printJsonDecodeError)
 import Data.Bifunctor (lmap)
 import Data.Either (Either(..), note)
+import Data.Generic.Rep (class Generic)
 import Data.Maybe (Maybe(..))
+import Data.Show.Generic (genericShow)
 import Data.String (toLower)
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Aff.Compat (EffectFnAff, fromEffectFnAff)
 import Foreign.Object as FO
 
 type BuildR a = Record
-  ( path        :: String
-  , version     :: String 
-  , build       :: String
-  , longVersion :: String 
-  , keccak256   :: String
-  , urls        :: Array String
+  ( path :: String
+  , version :: String
+  , build :: String
+  , longVersion :: String
+  , keccak256 :: String
+  , urls :: Array String
   | a
   )
 
-data Build = Stable (BuildR ())
-           | Prerelease (BuildR (prerelease :: String))
+data Build
+  = Stable (BuildR ())
+  | Prerelease (BuildR (prerelease :: String))
+
+derive instance genericBuild :: Generic Build _
+instance showBuild :: Show Build where
+  show = genericShow
 
 instance decodeJsonBuild :: DecodeJson Build where
   decodeJson j = Prerelease <$> decodeJson j <|> Stable <$> decodeJson j
 
 instance encodeJsonBuild :: EncodeJson Build where
-  encodeJson (Stable s)     = encodeJson s
+  encodeJson (Stable s) = encodeJson s
   encodeJson (Prerelease s) = encodeJson s
 
-newtype ReleaseList = 
-  ReleaseList { builds        :: Array Build
-              , releases      :: FO.Object String 
-              , latestRelease :: String 
-              }
+newtype ReleaseList =
+  ReleaseList
+    { builds :: Array Build
+    , releases :: FO.Object String
+    , latestRelease :: String
+    }
+
+derive instance genericReleaseList :: Generic ReleaseList _
 derive newtype instance decodeJsonReleaseList :: DecodeJson ReleaseList
 derive newtype instance encodeJsonReleaseList :: EncodeJson ReleaseList
+instance showReleaseList :: Show ReleaseList where
+  show = genericShow
 
-newtype ReleaseRepo = 
-  ReleaseRepo { base :: String 
-              , listFile :: String
-              }
+newtype ReleaseRepo =
+  ReleaseRepo
+    { base :: String
+    , listFile :: String
+    }
 
 foreign import _getURL :: String -> EffectFnAff String
+
 getURL
   :: forall m
    . MonadAff m
@@ -66,7 +80,7 @@ getURL u = liftAff $ (map Right <<< fromEffectFnAff $ _getURL u) `catchError` (p
 
 defaultReleaseRepo :: ReleaseRepo
 defaultReleaseRepo = ReleaseRepo
-  { base: "https://ethereum.github.io/solc-bin/bin"
+  { base: "https://binaries.soliditylang.org/bin"
   , listFile: "list.json"
   }
 
@@ -83,8 +97,8 @@ getReleaseList (ReleaseRepo repo) = runExceptT do
 lookupLatestRelease
   :: ReleaseList
   -> Either String String
-lookupLatestRelease (ReleaseList list) = 
-  note "repo's latest release was not in the repo's releases list" $ 
+lookupLatestRelease (ReleaseList list) =
+  note "repo's latest release was not in the repo's releases list" $
     FO.lookup list.latestRelease list.releases
 
 getReleaseSource
@@ -101,6 +115,6 @@ getReleaseSource rr@(ReleaseRepo repo) release = runExceptT do
       releaseFileName <- except (lookupLatestRelease rl)
       fetch releaseFileName
     _ -> case FO.lookup release list.releases of
-           Nothing -> fetch release
-           Just releaseFilename -> fetch releaseFilename
-    
+      Nothing -> fetch release
+      Just releaseFilename -> fetch releaseFilename
+

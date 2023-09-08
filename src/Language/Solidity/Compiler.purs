@@ -28,7 +28,7 @@ foreign import callbackSuccess :: String -> SolcReadFileCallbackResult
 foreign import callbackFailure :: String -> SolcReadFileCallbackResult
 foreign import defaultCompiler :: SolidityCompiler
 foreign import version :: SolidityCompiler -> String
-foreign import useCompiler :: String -> SolidityCompiler
+foreign import _useCompiler :: String -> EffectFnAff SolidityCompiler
 foreign import _loadRemoteVersion :: String -> EffectFnAff SolidityCompiler
 foreign import _compile :: Fn3 SolidityCompiler Json (FilePath -> Effect SolcReadFileCallbackResult) (Effect Json)
 
@@ -42,7 +42,8 @@ compile
 compile solc input readFile = liftEffect $ map (lmap printJsonDecodeError) $
   A.decodeJson <$> runFn3 _compile solc (encodeJson input) liftedCallback
 
-  where liftedCallback = map (either callbackFailure callbackSuccess) <<< readFile
+  where
+  liftedCallback = map (either callbackFailure callbackSuccess) <<< readFile
 
 loadRemoteVersion
   :: forall m
@@ -50,3 +51,10 @@ loadRemoteVersion
   => String
   -> m SolidityCompiler
 loadRemoteVersion = liftAff <<< fromEffectFnAff <<< _loadRemoteVersion
+
+useCompiler
+  :: forall m
+   . MonadAff m
+  => String
+  -> m SolidityCompiler
+useCompiler = liftAff <<< fromEffectFnAff <<< _useCompiler
