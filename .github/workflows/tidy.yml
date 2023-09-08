@@ -15,8 +15,11 @@ jobs:
       uses: actions/checkout@v4
       with:
         submodules: recursive
+    - name: setup node
+      uses: actions/setup-node@v3
+      with:
+        node-version-file: .nvmrc
     - name: run tidy
       run: |
-        nvm use
         npm install
         npm run tidy-check
