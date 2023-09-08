@@ -16,6 +16,7 @@ jobs:
         submodules: recursive
     - name: run tests
       run: |
+        nvm use
         npm install
         npm run build
         npm run test
