@@ -22,17 +22,56 @@ export const version = function(solc) {
   return solc.version();
 }
 
-export const useCompiler = function(source) {
-  const requireFromString = function(str) {
-    const filename = "__solc_useCompiler";
-    const Module = module.constructor;
-    var m = new Module(filename, module);
-    m.filename = filename
-    m.paths = module.paths;
-    m._compile(source, "__solc_useCompiler");
-    return m.exports;
+// Because PureScript 0.15+ converted modules to use ESM, we can't just
+// require() in a CJS module -- even import()ing from a data URI will make
+// node's loader assume we're trying to load an ES module. This is unfortunate
+// since solc is shipped as an ES. To get around this, we create a loader hook
+// that forces Node to treat certain URLs as CommonJS.
+//
+// This unfortunately requires Node v20.6+
+//
+// Because we are a PureScript package and can't assume anything about where any relative
+// "pure" JS files will be, but we do know our own module's URL, we keep this function here
+// and in _useCompiler, we register this file as a node loader.
+const __DATA_JS_BASE64 = "data:text/javascript;base64,";
+const __SOLC_CJS_MARKER = "/solc_cjs";
+export function load(spec, context, next) {
+  if (typeof spec === 'string' && spec.startsWith(__DATA_JS_BASE64) && spec.endsWith(__SOLC_CJS_MARKER)) {
+    const cleanedSpec = spec.substring(__DATA_JS_BASE64.length, spec.length - __SOLC_CJS_MARKER.length);
+    return {
+      format: 'commonjs',
+      shortCircuit: true,
+      source: atob(cleanedSpec),
+    };
+  } else {
+    return next(spec, context);
   }
-  return solcMod.setupMethods(requireFromString(source));
+}
+
+export const _useCompiler = function(source) {
+  return function (onError, onSuccess) {
+    const mkMod = async () => {
+      try {
+        const url = __DATA_JS_BASE64 + btoa(source) + __SOLC_CJS_MARKER;
+        const NodeModule = await import("node:module");
+        NodeModule.register(import.meta.url);
+        const mod = await import(url);
+        return mod.default;
+      } catch(e) {
+        console.error(e);
+        throw e;
+      }
+    };
+
+    const cancel = mkMod().then(m => onSuccess(solcMod.setupMethods(m)), e => {
+      onError(e);
+    });
+
+    return function(cancelError, onCancelerError, onCancelerSuccess) {
+      cancel();
+      onCancelerSuccess();
+    };
+  };
 }
 
 export const callbackSuccess = function (contents) {

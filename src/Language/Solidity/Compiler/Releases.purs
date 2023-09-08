@@ -17,7 +17,9 @@ import Data.Argonaut (class DecodeJson, class EncodeJson, decodeJson, encodeJson
 import Data.Argonaut.Decode.Error (printJsonDecodeError)
 import Data.Bifunctor (lmap)
 import Data.Either (Either(..), note)
+import Data.Generic.Rep (class Generic)
 import Data.Maybe (Maybe(..))
+import Data.Show.Generic (genericShow)
 import Data.String (toLower)
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Aff.Compat (EffectFnAff, fromEffectFnAff)
@@ -37,6 +39,10 @@ data Build
   = Stable (BuildR ())
   | Prerelease (BuildR (prerelease :: String))
 
+derive instance genericBuild :: Generic Build _
+instance showBuild :: Show Build where
+  show = genericShow
+
 instance decodeJsonBuild :: DecodeJson Build where
   decodeJson j = Prerelease <$> decodeJson j <|> Stable <$> decodeJson j
 
@@ -51,8 +57,11 @@ newtype ReleaseList =
     , latestRelease :: String
     }
 
+derive instance genericReleaseList :: Generic ReleaseList _
 derive newtype instance decodeJsonReleaseList :: DecodeJson ReleaseList
 derive newtype instance encodeJsonReleaseList :: EncodeJson ReleaseList
+instance showReleaseList :: Show ReleaseList where
+  show = genericShow
 
 newtype ReleaseRepo =
   ReleaseRepo
@@ -71,7 +80,7 @@ getURL u = liftAff $ (map Right <<< fromEffectFnAff $ _getURL u) `catchError` (p
 
 defaultReleaseRepo :: ReleaseRepo
 defaultReleaseRepo = ReleaseRepo
-  { base: "https://ethereum.github.io/solc-bin/bin"
+  { base: "https://binaries.soliditylang.org/bin"
   , listFile: "list.json"
   }
 

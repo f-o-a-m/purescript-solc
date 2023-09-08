@@ -10,7 +10,7 @@ export const _getURL = function(url) {
     var cancel = httpImpl.get(url, function (res) {
       var error;
       if (res.statusCode != 200) {
-        error = new Error("Request failed, status code " + statusCode);
+        error = new Error("Request failed to " +  url + " status code " + res.statusCode);
       }
 
       if (error) {
