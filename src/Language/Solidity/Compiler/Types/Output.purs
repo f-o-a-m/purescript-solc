@@ -31,7 +31,7 @@ import Data.Maybe (Maybe, maybe)
 import Data.Newtype (class Newtype)
 import Foreign.Object as FO
 import Language.Solidity.Compiler.Types.Common (ContractMapped, FileMapped, Strung)
-import Network.Ethereum.Core.BigNumber (BigNumber, parseBigNumber)
+import Network.Ethereum.Core.BigNumber (BigNumber, fromStringAs)
 import Network.Ethereum.Types (HexString, mkHexString, unHex)
 
 --------------------------------------------------
@@ -279,7 +279,7 @@ derive instance ordGasEstimate :: Ord GasEstimate
 instance decodeJsonGasEstimate :: DecodeJson GasEstimate where
   decodeJson j = decodeJson j >>= case _ of
     "infinite" -> pure InfiniteGas
-    x -> note (Named "invalid BigNumber" $ UnexpectedValue j) $ GasCount <$> parseBigNumber Int.decimal x
+    x -> note (Named "invalid BigNumber" $ UnexpectedValue j) $ GasCount <$> fromStringAs Int.decimal x
 
 newtype GasEstimates = GasEstimates (FO.Object GasEstimate)
 
