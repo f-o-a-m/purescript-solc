@@ -26,14 +26,14 @@ flattenOptionalArray rs = if Array.null rs then Nothing else Just rs
 --- Some fields are strings which are really JSON
 newtype Strung a = Strung a
 
-derive newtype instance eqStrung :: Eq a => Eq (Strung a)
-derive newtype instance ordStrung :: Ord a => Ord (Strung a)
-derive newtype instance semigroupStrung :: Semigroup a => Semigroup (Strung a)
-derive newtype instance monoidStrung :: Monoid a => Monoid (Strung a)
+derive newtype instance Eq a => Eq (Strung a)
+derive newtype instance Ord a => Ord (Strung a)
+derive newtype instance Semigroup a => Semigroup (Strung a)
+derive newtype instance Monoid a => Monoid (Strung a)
 
-derive instance newtypeStrung :: Newtype (Strung a) _
+derive instance Newtype (Strung a) _
 
-instance decodeJsonStrung :: DecodeJson a => DecodeJson (Strung a) where
+instance DecodeJson a => DecodeJson (Strung a) where
   decodeJson j =
     decodeJson j
       >>= (lmap TypeMismatch <<< jsonParser)
@@ -41,5 +41,5 @@ instance decodeJsonStrung :: DecodeJson a => DecodeJson (Strung a) where
       >>=
         pure <<< Strung
 
-instance encodeJsonStrung :: EncodeJson a => EncodeJson (Strung a) where
+instance EncodeJson a => EncodeJson (Strung a) where
   encodeJson (Strung a) = fromString <<< stringify $ encodeJson a

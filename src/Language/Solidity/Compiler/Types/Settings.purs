@@ -62,16 +62,16 @@ newtype YulOptimizerDetails = YulOptimizerDetails
   { stackAllocation :: Boolean
   }
 
-derive instance eqYulOptimizerDetails :: Eq YulOptimizerDetails
-derive instance ordYulOptimizerDetails :: Ord YulOptimizerDetails
+derive instance Eq YulOptimizerDetails
+derive instance Ord YulOptimizerDetails
 
-instance decodeJsonYulOptimizerDetails :: DecodeJson YulOptimizerDetails where
+instance DecodeJson YulOptimizerDetails where
   decodeJson j = do
     o <- decodeJson j
     stackAllocation <- o .: "stackAllocation"
     pure $ YulOptimizerDetails { stackAllocation }
 
-instance encodeJsonYulOptimizerDetails :: EncodeJson YulOptimizerDetails where
+instance EncodeJson YulOptimizerDetails where
   encodeJson (YulOptimizerDetails y) =
     jsonSingletonObject "stackAllocation" (A.fromBoolean y.stackAllocation)
 
@@ -89,10 +89,10 @@ newtype OptimizerDetails = OptimizerDetails
   , yulDetails :: Maybe YulOptimizerDetails
   }
 
-derive instance eqOptimizerDetails :: Eq OptimizerDetails
-derive instance ordOptimizerDetails :: Ord OptimizerDetails
+derive instance Eq OptimizerDetails
+derive instance Ord OptimizerDetails
 
-instance decodeJsonOptimizerDetails :: DecodeJson OptimizerDetails where
+instance DecodeJson OptimizerDetails where
   decodeJson j = do
     o <- decodeJson j
     peephole <- o .:! "peephole"
@@ -114,7 +114,7 @@ instance decodeJsonOptimizerDetails :: DecodeJson OptimizerDetails where
       , yulDetails
       }
 
-instance encodeJsonOptimizerDetails :: EncodeJson OptimizerDetails where
+instance EncodeJson OptimizerDetails where
   encodeJson (OptimizerDetails o) =
     "peephole" :=? o.peephole
       ~>? "jumpdestRemove" :=? o.jumpdestRemove
@@ -138,7 +138,7 @@ newtype OptimizerSettings = OptimizerSettings
 derive instance eqOptimizerSettings :: Eq OptimizerSettings
 derive instance ordOptimizerSettings :: Ord OptimizerSettings
 
-instance decodeJsonOptimizerSettings :: DecodeJson OptimizerSettings where
+instance DecodeJson OptimizerSettings where
   decodeJson j = do
     o <- decodeJson j
     enabled <- o .:! "enabled"
@@ -146,7 +146,7 @@ instance decodeJsonOptimizerSettings :: DecodeJson OptimizerSettings where
     details <- o .:! "details"
     pure $ OptimizerSettings { enabled, runs, details }
 
-instance encodeJsonOptimizerSettings :: EncodeJson OptimizerSettings where
+instance EncodeJson OptimizerSettings where
   encodeJson (OptimizerSettings o) =
     "enabled" :=? o.enabled
       ~>? "runs" :=? o.runs
@@ -154,8 +154,8 @@ instance encodeJsonOptimizerSettings :: EncodeJson OptimizerSettings where
       ~>? jsonEmptyObject
 
 --------------------------------------------------
---- "settings.evmVersion"
-
+--- "settings.evmVersion", e.g. see 
+-- https://docs.soliditylang.org/en/v0.8.20/using-the-compiler.html#target-options
 data EvmVersion
   = Homestead -- at 1150000
   | TangerineWhistle -- aka EIP-150, at 2463000
@@ -163,11 +163,15 @@ data EvmVersion
   | Byzantium -- aka EIP-609, at 4370000
   | Constantinople -- aka EIP-1013, at 7280000
   | Petersburg -- aka EIP-1014, at 7280000
+  | Istanbul
+  | Berlin
+  | London
+  | Paris
 
-derive instance eqEvmVersion :: Eq EvmVersion
-derive instance ordEvmVersion :: Ord EvmVersion
+derive instance Eq EvmVersion
+derive instance Ord EvmVersion
 
-instance decodeJsonEvmVersion :: DecodeJson EvmVersion where
+instance DecodeJson EvmVersion where
   decodeJson j = decodeJson j >>= case _ of
     "homestead" -> pure Homestead
     "tangerineWhistle" -> pure TangerineWhistle
@@ -175,9 +179,13 @@ instance decodeJsonEvmVersion :: DecodeJson EvmVersion where
     "byzantium" -> pure Byzantium
     "constantinople" -> pure Constantinople
     "petersburg" -> pure Petersburg
+    "istanbul" -> pure Istanbul
+    "berlin" -> pure Berlin
+    "london" -> pure London
+    "paris" -> pure Paris
     x -> Left $ Named ("Unknown EVM version " <> x) $ UnexpectedValue j
 
-instance encodeJsonEvmVersion :: EncodeJson EvmVersion where
+instance EncodeJson EvmVersion where
   encodeJson = A.fromString <<< case _ of
     Homestead -> "homestead"
     TangerineWhistle -> "tangerineWhistle"
@@ -185,6 +193,10 @@ instance encodeJsonEvmVersion :: EncodeJson EvmVersion where
     Byzantium -> "byzantium"
     Constantinople -> "constantinople"
     Petersburg -> "petersburg"
+    Istanbul -> "istanbul"
+    Berlin -> "berlin"
+    London -> "london"
+    Paris -> "paris"
 
 --------------------------------------------------
 --- "settings.metadata"
@@ -193,16 +205,16 @@ newtype MetadataSettings = MetadataSettings
   { useLiteralContent :: Boolean
   }
 
-derive instance eqMetadataSettings :: Eq MetadataSettings
-derive instance ordMetadataSettings :: Ord MetadataSettings
+derive instance Eq MetadataSettings
+derive instance Ord MetadataSettings
 
-instance decodeJsonMetadataSettings :: DecodeJson MetadataSettings where
+instance DecodeJson MetadataSettings where
   decodeJson j = do
     o <- decodeJson j
     useLiteralContent <- o .:! "useLiteralContent" .!= false
     pure $ MetadataSettings { useLiteralContent }
 
-instance encodeJsonMetadataSettings :: EncodeJson MetadataSettings where
+instance EncodeJson MetadataSettings where
   encodeJson (MetadataSettings ms) =
     jsonSingletonObject "useLiteralContent" $ A.fromBoolean ms.useLiteralContent
 
@@ -223,9 +235,9 @@ instance encodeJsonLibrary :: EncodeJson Library where
 
 newtype Libraries = Libraries (FileMapped Library)
 
-derive newtype instance eqLibraries :: Eq Libraries
-derive newtype instance ordLibraries :: Ord Libraries
-derive newtype instance encodeJsonLibraries :: EncodeJson Libraries
+derive newtype instance Eq Libraries
+derive newtype instance Ord Libraries
+derive newtype instance EncodeJson Libraries
 
 --------------------------------------------------
 --- "settings.outputSelection"
@@ -252,7 +264,7 @@ mapFromSelectionNullable :: forall a b. IsSelection a => (Maybe a -> b) -> Array
 mapFromSelectionNullable f [] = Just (f Nothing)
 mapFromSelectionNullable f xs = (f <<< Just) <$> fromSelection xs
 
-instance isSelectionMaybe :: IsSelection a => IsSelection (Maybe a) where
+instance IsSelection a => IsSelection (Maybe a) where
   toSelection Nothing = []
   toSelection (Just a) = toSelection a
 
@@ -263,10 +275,10 @@ data FileLevelSelection
   = AST
   | LegacyAST
 
-derive instance eqFileLevelSelection :: Eq FileLevelSelection
-derive instance ordFileLevelSelection :: Ord FileLevelSelection
+derive instance Eq FileLevelSelection
+derive instance Ord FileLevelSelection
 
-instance isSelectionFileLevel :: IsSelection FileLevelSelection where
+instance IsSelection FileLevelSelection where
   toSelection AST = [ "ast" ]
   toSelection LegacyAST = [ "legacyAST" ]
 
@@ -280,10 +292,10 @@ data EvmBytecodeOutput
   | BytecodeSourceMap
   | BytecodeLinkReferences
 
-derive instance eqEvmBytecodeOutput :: Eq EvmBytecodeOutput
-derive instance ordEvmBytecodeOutput :: Ord EvmBytecodeOutput
+derive instance Eq EvmBytecodeOutput
+derive instance Ord EvmBytecodeOutput
 
-instance isSelectionBytecode :: IsSelection EvmBytecodeOutput where
+instance IsSelection EvmBytecodeOutput where
   toSelection BytecodeObject = [ "object" ]
   toSelection BytecodeOpcodes = [ "opcodes" ]
   toSelection BytecodeSourceMap = [ "sourceMap" ]
@@ -303,10 +315,10 @@ data EvmOutputSelection
   | MethodIdentifiersSelection
   | GasEstimatesSelection
 
-derive instance eqEvmOutputSelection :: Eq EvmOutputSelection
-derive instance ordEvmOutputSelection :: Ord EvmOutputSelection
+derive instance Eq EvmOutputSelection
+derive instance Ord EvmOutputSelection
 
-instance isSelectionEvmOutput :: IsSelection EvmOutputSelection where
+instance IsSelection EvmOutputSelection where
   toSelection = case _ of
     AssemblySelection -> [ "assembly" ]
     LegacyAssemblySelection -> [ "legacyAssembly" ]
@@ -328,10 +340,10 @@ data EwasmOutputSelection
   = Wast
   | Wasm
 
-derive instance eqEwasmOutputSelection :: Eq EwasmOutputSelection
-derive instance ordEwasmOutputSelection :: Ord EwasmOutputSelection
+derive instance Eq EwasmOutputSelection
+derive instance Ord EwasmOutputSelection
 
-instance isSelectionEwasmOutput :: IsSelection EwasmOutputSelection where
+instance IsSelection EwasmOutputSelection where
   toSelection = case _ of
     Wast -> [ "wast" ]
     Wasm -> [ "wasm" ]
@@ -350,10 +362,10 @@ data ContractLevelSelection
   | EvmOutputSelection (Maybe EvmOutputSelection)
   | EwasmOutputSelection (Maybe EwasmOutputSelection)
 
-derive instance eqContractLevelSelection :: Eq ContractLevelSelection
-derive instance ordContractLevelSelection :: Ord ContractLevelSelection
+derive instance Eq ContractLevelSelection
+derive instance Ord ContractLevelSelection
 
-instance isSelectionContractLevel :: IsSelection ContractLevelSelection where
+instance IsSelection ContractLevelSelection where
   toSelection ABI = [ "abi" ]
   toSelection DevDoc = [ "devdoc" ]
   toSelection UserDoc = [ "userdoc" ]
@@ -379,10 +391,10 @@ newtype OutputSelection = OutputSelection
   , contract :: ContractMapped (Array ContractLevelSelection)
   }
 
-derive instance eqOutputSelection :: Eq OutputSelection
-derive instance ordOutputSelection :: Ord OutputSelection
+derive instance Eq OutputSelection
+derive instance Ord OutputSelection
 
-instance decodeJsonOutputSelection :: DecodeJson OutputSelection where
+instance DecodeJson OutputSelection where
   decodeJson j = do
     (o :: FO.Object Json) <- decodeJson j
     let Tuple fileJ contractJ = fromMaybe (Tuple jsonEmptyArray o) $ FO.pop "" o
@@ -390,7 +402,7 @@ instance decodeJsonOutputSelection :: DecodeJson OutputSelection where
     contract <- for contractJ $ (traverse decodeJsonSelection' <=< decodeJson)
     pure $ OutputSelection { file, contract }
 
-instance encodeJsonOutputSelection :: EncodeJson OutputSelection where
+instance EncodeJson OutputSelection where
   encodeJson (OutputSelection { file, contract }) =
     let
       fileLevelJson = nub $ encodeJsonSelection <$> file
@@ -402,9 +414,9 @@ instance encodeJsonOutputSelection :: EncodeJson OutputSelection where
 
 newtype OutputSelections = OutputSelections (FileMapped OutputSelection)
 
-derive newtype instance encodeJsonOutputSelections :: EncodeJson OutputSelections
-derive newtype instance eqOutputSelections :: Eq OutputSelections
-derive newtype instance ordOutputSelections :: Ord OutputSelections
+derive newtype instance EncodeJson OutputSelections
+derive newtype instance Eq OutputSelections
+derive newtype instance Ord OutputSelections
 
 --------------------------------------------------
 --- "settings"
@@ -418,10 +430,10 @@ newtype CompilerSettings = CompilerSettings
   , outputSelection :: Maybe OutputSelections
   }
 
-derive instance eqCompilerSettings :: Eq CompilerSettings
-derive instance ordCompilerSettings :: Ord CompilerSettings
+derive instance Eq CompilerSettings
+derive instance Ord CompilerSettings
 
-instance encodeJsonCompilerSettings :: EncodeJson CompilerSettings where
+instance EncodeJson CompilerSettings where
   encodeJson (CompilerSettings s) =
     "remappings" :=? (flattenOptionalArray s.remappings)
       ~>? "optimizer" :=? s.optimizer

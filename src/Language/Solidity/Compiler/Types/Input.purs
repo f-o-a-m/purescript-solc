@@ -22,16 +22,16 @@ import Language.Solidity.Compiler.Types.Settings (class IsSelection, CompilerSet
 --- "language" field of input
 data SourceLanguage = Solidity | Yul
 
-derive instance eqSourceLanguage :: Eq SourceLanguage
-derive instance ordSourceLanguage :: Ord SourceLanguage
+derive instance Eq SourceLanguage
+derive instance Ord SourceLanguage
 
-instance decodeJsonSourceLanguage :: DecodeJson SourceLanguage where
+instance DecodeJson SourceLanguage where
   decodeJson j = decodeJson j >>= case _ of
     "Solidity" -> pure Solidity
     "Yul" -> pure Yul
     x -> Left $ Named ("Unknown source language " <> x) $ UnexpectedValue j
 
-instance encodeJsonSourceLanguage :: EncodeJson SourceLanguage where
+instance EncodeJson SourceLanguage where
   encodeJson = A.fromString <<< case _ of
     Solidity -> "Solidity"
     Yul -> "Yul"
@@ -49,10 +49,10 @@ data Source
       , content :: String
       }
 
-derive instance eqSource :: Eq Source
-derive instance ordSource :: Ord Source
+derive instance Eq Source
+derive instance Ord Source
 
-instance encodeJsonSource :: EncodeJson Source where
+instance EncodeJson Source where
   encodeJson (FromURLs u) =
     "urls" := u.urls
       ~> "keccak256" :=? u.keccak256
@@ -62,10 +62,10 @@ instance encodeJsonSource :: EncodeJson Source where
 
 newtype Sources = Sources (FO.Object Source)
 
-derive instance newtypeSources :: Newtype Sources _
-derive newtype instance encodeJsonSources :: EncodeJson Sources
-derive newtype instance eqSources :: Eq Sources
-derive newtype instance ordSources :: Ord Sources
+derive instance Newtype Sources _
+derive newtype instance EncodeJson Sources
+derive newtype instance Eq Sources
+derive newtype instance Ord Sources
 
 --------------------------------------------------
 --- the input object itself
@@ -76,10 +76,10 @@ newtype CompilerInput = CompilerInput
   , settings :: Maybe CompilerSettings
   }
 
-derive instance eqCompilerInput :: Eq CompilerInput
-derive instance ordCompilerInput :: Ord CompilerInput
+derive instance Eq CompilerInput
+derive instance Ord CompilerInput
 
-instance encodeJsonCompilerInput :: EncodeJson CompilerInput where
+instance EncodeJson CompilerInput where
   encodeJson (CompilerInput i) =
     "language" := i.language
       ~> "sources" := i.sources
