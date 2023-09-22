@@ -39,14 +39,14 @@ data Build
   = Stable (BuildR ())
   | Prerelease (BuildR (prerelease :: String))
 
-derive instance genericBuild :: Generic Build _
-instance showBuild :: Show Build where
+derive instance Generic Build _
+instance Show Build where
   show = genericShow
 
-instance decodeJsonBuild :: DecodeJson Build where
+instance DecodeJson Build where
   decodeJson j = Prerelease <$> decodeJson j <|> Stable <$> decodeJson j
 
-instance encodeJsonBuild :: EncodeJson Build where
+instance EncodeJson Build where
   encodeJson (Stable s) = encodeJson s
   encodeJson (Prerelease s) = encodeJson s
 
@@ -57,10 +57,10 @@ newtype ReleaseList =
     , latestRelease :: String
     }
 
-derive instance genericReleaseList :: Generic ReleaseList _
-derive newtype instance decodeJsonReleaseList :: DecodeJson ReleaseList
-derive newtype instance encodeJsonReleaseList :: EncodeJson ReleaseList
-instance showReleaseList :: Show ReleaseList where
+derive instance Generic ReleaseList _
+derive newtype instance DecodeJson ReleaseList
+derive newtype instance EncodeJson ReleaseList
+instance Show ReleaseList where
   show = genericShow
 
 newtype ReleaseRepo =

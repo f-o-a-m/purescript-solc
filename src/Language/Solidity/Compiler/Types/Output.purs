@@ -91,10 +91,10 @@ instance decodeJsonErrorType :: DecodeJson ErrorType where
 
 data ErrorSeverity = SeverityError | SeverityWarning
 
-derive instance eqErrorSeverity :: Eq ErrorSeverity
-derive instance ordErrorSeverity :: Ord ErrorSeverity
+derive instance Eq ErrorSeverity
+derive instance Ord ErrorSeverity
 
-instance decodeJsonErrorSeverity :: DecodeJson ErrorSeverity where
+instance DecodeJson ErrorSeverity where
   decodeJson o = decodeJson o >>= case _ of
     "error" -> pure SeverityError
     "warning" -> pure SeverityWarning
@@ -109,8 +109,8 @@ newtype SourceLocation = SourceLocation
   , message :: Maybe String
   }
 
-derive instance eqSourceLocation :: Eq SourceLocation
-derive instance ordSourceLocation :: Ord SourceLocation
+derive instance Eq SourceLocation
+derive instance Ord SourceLocation
 
 instance showSourceLocation :: Show SourceLocation where
   show (SourceLocation sl) =
@@ -119,7 +119,7 @@ instance showSourceLocation :: Show SourceLocation where
     in
       sl.file <> ":" <> show sl.start <> "-" <> show sl.end <> msg
 
-instance decodeJsonSourceLocation :: DecodeJson SourceLocation where
+instance DecodeJson SourceLocation where
   decodeJson j = do
     o <- decodeJson j
     file <- o .: "file"
@@ -143,10 +143,10 @@ data CompilationError
       , secondarySourceLocations :: Array SourceLocation
       }
 
-derive instance eqCompilationError :: Eq CompilationError
-derive instance ordCompilationError :: Ord CompilationError
+derive instance Eq CompilationError
+derive instance Ord CompilationError
 
-instance decodeJsonCompilationError :: DecodeJson CompilationError where
+instance DecodeJson CompilationError where
   decodeJson j = (SimpleCompilationError <$> decodeJson j) <|> (decodeAsObject =<< decodeJson j)
     where
     decodeAsObject o = do
@@ -176,10 +176,10 @@ newtype SourceLevelOutput = SourceLevelOutput
   , legacyAST :: Maybe A.Json
   }
 
-derive instance eqSourceLevelOutput :: Eq SourceLevelOutput
-derive instance ordSourceLevelOutput :: Ord SourceLevelOutput
+derive instance Eq SourceLevelOutput
+derive instance Ord SourceLevelOutput
 
-instance decodeJsonSourceLevelOutput :: DecodeJson SourceLevelOutput where
+instance DecodeJson SourceLevelOutput where
   decodeJson j = do
     o <- decodeJson j
     id <- o .: "id"
@@ -191,13 +191,13 @@ instance decodeJsonSourceLevelOutput :: DecodeJson SourceLevelOutput where
 --- "contracts{}{}.evm.{deployedBytecode, bytecode}.object" field of output
 data BytecodeObject = BytecodeHexString HexString | BytecodeUnlinked String
 
-derive instance eqBytecodeObject :: Eq BytecodeObject
-derive instance ordBytecodeObject :: Ord BytecodeObject
+derive instance Eq BytecodeObject
+derive instance Ord BytecodeObject
 
-instance decodeJsonBytecodeObject :: DecodeJson BytecodeObject where
+instance DecodeJson BytecodeObject where
   decodeJson = map mkBytecodeObject <<< decodeJson
 
-instance encodeJsonBytecodeObject :: EncodeJson BytecodeObject where
+instance EncodeJson BytecodeObject where
   encodeJson = encodeJson <<< unBytecodeObject
 
 mkBytecodeObject :: String -> BytecodeObject
@@ -215,17 +215,17 @@ data LinkReference = LinkReference
   , length :: Int
   }
 
-derive instance eqLinkReference :: Eq LinkReference
-derive instance ordLinkReference :: Ord LinkReference
+derive instance Eq LinkReference
+derive instance Ord LinkReference
 
-instance decodeJsonLinkReference :: DecodeJson LinkReference where
+instance DecodeJson LinkReference where
   decodeJson j = do
     o <- decodeJson j
     start <- o .: "start"
     length <- o .: "length"
     pure $ LinkReference { start, length }
 
-instance encodeJsonLinkReference :: EncodeJson LinkReference where
+instance EncodeJson LinkReference where
   encodeJson (LinkReference { start, length }) =
     "start" := start
       ~> "length" := length
@@ -233,10 +233,10 @@ instance encodeJsonLinkReference :: EncodeJson LinkReference where
 
 newtype LinkReferences = LinkReferences (FileMapped (ContractMapped (Array LinkReference)))
 
-derive instance newtypeLinkReferences :: Newtype LinkReferences _
-derive newtype instance eqLinkReferences :: Eq LinkReferences
-derive newtype instance ordLinkReferences :: Ord LinkReferences
-derive newtype instance decodeJsonLinkReferences :: DecodeJson LinkReferences
+derive instance Newtype LinkReferences _
+derive newtype instance Eq LinkReferences
+derive newtype instance Ord LinkReferences
+derive newtype instance DecodeJson LinkReferences
 
 --------------------------------------------------
 --- "contracts{}{}.evm.{deployedBytecode, bytecode}" field of output
@@ -247,10 +247,10 @@ newtype BytecodeOutput = BytecodeOutput
   , linkReferences :: Maybe LinkReferences
   }
 
-derive instance eqBytecodeOutput :: Eq BytecodeOutput
-derive instance ordBytecodeOutput :: Ord BytecodeOutput
+derive instance Eq BytecodeOutput
+derive instance Ord BytecodeOutput
 
-instance decodeJsonBytecodeOutput :: DecodeJson BytecodeOutput where
+instance DecodeJson BytecodeOutput where
   decodeJson j = do
     o <- decodeJson j
     object <- o .:? "object"
@@ -263,29 +263,29 @@ instance decodeJsonBytecodeOutput :: DecodeJson BytecodeOutput where
 --- "contracts{}{}.evm.methodIdentifiers" field of output
 newtype MethodIdentifiers = MethodIdentifiers (FO.Object HexString)
 
-derive instance newtypeMethodIdentifiers :: Newtype MethodIdentifiers _
-derive newtype instance eqMethodIdentifiers :: Eq MethodIdentifiers
-derive newtype instance ordMethodIdentifiers :: Ord MethodIdentifiers
-derive newtype instance decodeJsonMethodIdentifiers :: DecodeJson MethodIdentifiers
+derive instance Newtype MethodIdentifiers _
+derive newtype instance Eq MethodIdentifiers
+derive newtype instance Ord MethodIdentifiers
+derive newtype instance DecodeJson MethodIdentifiers
 
 --------------------------------------------------
 --- "contracts{}{}.evm.gasEstimates.*" values of output
 
 data GasEstimate = InfiniteGas | GasCount BigNumber
 
-derive instance eqGasEstimate :: Eq GasEstimate
-derive instance ordGasEstimate :: Ord GasEstimate
+derive instance Eq GasEstimate
+derive instance Ord GasEstimate
 
-instance decodeJsonGasEstimate :: DecodeJson GasEstimate where
+instance DecodeJson GasEstimate where
   decodeJson j = decodeJson j >>= case _ of
     "infinite" -> pure InfiniteGas
     x -> note (Named "invalid BigNumber" $ UnexpectedValue j) $ GasCount <$> fromStringAs Int.decimal x
 
 newtype GasEstimates = GasEstimates (FO.Object GasEstimate)
 
-derive newtype instance eqGasEstimates :: Eq GasEstimates
-derive newtype instance ordGasEstimates :: Ord GasEstimates
-derive newtype instance decodeJsonGasEstimates :: DecodeJson GasEstimates
+derive newtype instance Eq GasEstimates
+derive newtype instance Ord GasEstimates
+derive newtype instance DecodeJson GasEstimates
 
 newtype CreationGasEstimates = CreationGasEstimates
   { codeDepositCost :: Maybe GasEstimate
@@ -293,10 +293,10 @@ newtype CreationGasEstimates = CreationGasEstimates
   , totalCost :: Maybe GasEstimate
   }
 
-derive instance eqCreationGasEstimates :: Eq CreationGasEstimates
-derive instance ordCreationGasEstimates :: Ord CreationGasEstimates
+derive instance Eq CreationGasEstimates
+derive instance Ord CreationGasEstimates
 
-instance decodeJsonCreationGasEstimates :: DecodeJson CreationGasEstimates where
+instance DecodeJson CreationGasEstimates where
   decodeJson j = do
     o <- decodeJson j
     codeDepositCost <- o .:? "codeDepositCost"
@@ -312,10 +312,10 @@ newtype ContractGasEstimates = ContractGasEstimates
   , internal :: Maybe (FO.Object GasEstimate)
   }
 
-derive instance eqContractGasEstimates :: Eq ContractGasEstimates
-derive instance ordContractGasEstimates :: Ord ContractGasEstimates
+derive instance Eq ContractGasEstimates
+derive instance Ord ContractGasEstimates
 
-instance decodeJsonContractGasEstimates :: DecodeJson ContractGasEstimates where
+instance DecodeJson ContractGasEstimates where
   decodeJson j = do
     o <- decodeJson j
     creation <- o .:? "creation"
@@ -335,10 +335,10 @@ newtype EvmOutput = EvmOutput
   , gasEstimates :: Maybe GasEstimates
   }
 
-derive instance eqEvmOutput :: Eq EvmOutput
-derive instance ordEvmOutput :: Ord EvmOutput
+derive instance Eq EvmOutput
+derive instance Ord EvmOutput
 
-instance decodeJsonEvmOutput :: DecodeJson EvmOutput where
+instance DecodeJson EvmOutput where
   decodeJson j = do
     o <- decodeJson j
     assembly <- o .:? "assembly"
@@ -363,10 +363,10 @@ newtype EwasmOutput = EwasmOutput
   , wasm :: Maybe HexString
   }
 
-derive instance eqEwasmOutput :: Eq EwasmOutput
-derive instance ordEwasmOutput :: Ord EwasmOutput
+derive instance Eq EwasmOutput
+derive instance Ord EwasmOutput
 
-instance decodeJsonEwasmOutput :: DecodeJson EwasmOutput where
+instance DecodeJson EwasmOutput where
   decodeJson j = do
     o <- decodeJson j
     wast <- o .:? "wast"
@@ -386,10 +386,10 @@ newtype ContractLevelOutput = ContractLevelOutput
   , ewasm :: Maybe EwasmOutput
   }
 
-derive instance eqContractLevelOutput :: Eq ContractLevelOutput
-derive instance ordContractLevelOutput :: Ord ContractLevelOutput
+derive instance Eq ContractLevelOutput
+derive instance Ord ContractLevelOutput
 
-instance decodeJsonContractLevelOutput :: DecodeJson ContractLevelOutput where
+instance DecodeJson ContractLevelOutput where
   decodeJson j = do
     o <- decodeJson j
     abi <- o .:? "abi"
@@ -409,10 +409,10 @@ newtype CompilerOutput = CompilerOutput
   , contracts :: FileMapped (ContractMapped ContractLevelOutput)
   }
 
-derive instance eqCompilerOutput :: Eq CompilerOutput
-derive instance ordCompilerOutput :: Ord CompilerOutput
+derive instance Eq CompilerOutput
+derive instance Ord CompilerOutput
 
-instance decodeJsonCompilerOutput :: DecodeJson CompilerOutput where
+instance DecodeJson CompilerOutput where
   decodeJson j = do
     o <- decodeJson j
     errors <- o .:? "errors" .!= []
