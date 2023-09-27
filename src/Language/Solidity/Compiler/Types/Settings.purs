@@ -24,6 +24,7 @@ module Language.Solidity.Compiler.Types.Settings
 
 import Prelude
 
+import Control.Alternative ((<|>))
 import Data.Argonaut (class DecodeJson, class EncodeJson, Json, decodeJson, encodeJson, fromString, jsonEmptyArray, jsonEmptyObject, jsonSingletonObject, (.!=), (.:), (.:!), (:=?), (~>?))
 import Data.Argonaut as A
 import Data.Argonaut.Decode.Error (JsonDecodeError(..), printJsonDecodeError)
@@ -31,7 +32,7 @@ import Data.Array (nub, null, uncons)
 import Data.Bifunctor (lmap)
 import Data.Either (Either(..), note)
 import Data.Maybe (Maybe(..), fromMaybe)
-import Data.String (Pattern(..), joinWith, split)
+import Data.String (Pattern(..), joinWith, split, stripPrefix)
 import Data.Traversable (for, traverse)
 import Data.Tuple (Tuple(..))
 import Foreign.Object as FO
@@ -54,6 +55,20 @@ instance encodeJsonRemapping :: EncodeJson Remapping where
   encodeJson = A.fromString <<< case _ of
     GlobalRemapping g -> ":g=" <> g.to
     Remapping r -> r.from <> "=" <> r.to
+
+instance DecodeJson Remapping where
+  decodeJson json = do
+    str <- decodeJson json
+    global str <|> remap str
+    where
+    global str = do
+      case stripPrefix (Pattern ":g=") str of
+        Nothing -> Left $ Named "GlobalRemapping" $ UnexpectedValue json
+        Just to -> pure $ GlobalRemapping { to }
+    remap str = do
+      case split (Pattern "=") str of
+        [ from, to ] -> pure $ Remapping { from, to }
+        _ -> Left $ Named "Remapping" $ UnexpectedValue json
 
 --------------------------------------------------
 --- "settings.optimizer.yulDetails"
