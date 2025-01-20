@@ -8,11 +8,12 @@ import Data.Maybe (Maybe(..), fromMaybe, isJust)
 import Data.String (Pattern(..), stripPrefix)
 import Data.Traversable (for_)
 import Effect (Effect)
-import Effect.Aff (error, launchAff_, throwError)
+import Effect.Aff (Aff, error, throwError)
 import Test.Spec (describe, it, parallel)
 import Test.Spec.Assertions (shouldSatisfy)
 import Test.Spec.Reporter.Console (consoleReporter)
-import Test.Spec.Runner (defaultConfig, runSpec')
+import Test.Spec.Runner.Node (runSpecAndExitProcess')
+import Test.Spec.Runner.Node.Config (defaultConfig)
 
 import Language.Solidity.Compiler as Compiler
 import Language.Solidity.Compiler.Releases as Releases
@@ -46,8 +47,12 @@ compilerVersionMatches remote compiler = pred
 
 main :: Effect Unit
 main = do
-  let cfg = defaultConfig { timeout = Just (Milliseconds $ 120.0 * 1000.0) }
-  launchAff_ $ runSpec' cfg [ consoleReporter ] do
+  let
+    cfg =
+      { defaultConfig: defaultConfig { timeout = Just (Milliseconds $ 120.0 * 1000.0) }
+      , parseCLIOptions: false
+      }
+  runSpecAndExitProcess' @Aff cfg [ consoleReporter ] do
     parallel $ describe "Releases" do
       it "can fetch the release list from the default repo" do
         rl <- Releases.getReleaseList Releases.defaultReleaseRepo
